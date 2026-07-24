@@ -4,10 +4,10 @@ import { Wallet } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/topup")({
   head: () => ({
     meta: [
-      { title: "ເຕີມເຄຣດິດ — DANO1" },
-      { name: "description", content: "ເຕີມເງິນເຂົ້າກະເປົາ DANO1 ຜ່ານ QR Code ຫຼື ໂຄດ" },
-      { property: "og:title", content: "ເຕີມເຄຣດິດ — DANO1" },
-      { property: "og:description", content: "ເຕີມເງິນເຂົ້າກະເປົາ DANO1 ຜ່ານ QR Code ຫຼື ໂຄດ" },
+      { title: "ເຕີມເຄຣດິດ — Gamelao" },
+      { name: "description", content: "ເຕີມເງິນເຂົ້າກະເປົາ Gamelao ຜ່ານ QR Code ຫຼື ໂຄດ" },
+      { property: "og:title", content: "ເຕີມເຄຣດິດ — Gamelao" },
+      { property: "og:description", content: "ເຕີມເງິນເຂົ້າກະເປົາ Gamelao ຜ່ານ QR Code ຫຼື ໂຄດ" },
     ],
   }),
   component: TopupPage,

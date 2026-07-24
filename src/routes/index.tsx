@@ -1,9 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Flame, CreditCard, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TopupGameDialog } from "@/components/app/TopupGameDialog";
+import { AppShell } from "@/components/app/AppShell";
+import { useAuth } from "@/lib/auth-context";
 
 interface Category {
   id: string;
@@ -17,12 +19,12 @@ interface Card {
   image_url: string | null;
 }
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ໜ້າຫຼັກ — ເຕີມເກມ | DANO1" },
+      { title: "ໜ້າຫຼັກ — ເຕີມເກມ | Gamelao" },
       { name: "description", content: "ເລືອກເກມ ຫຼື ບັດເຕີມເງິນທີ່ຕ້ອງການເຕີມ" },
-      { property: "og:title", content: "ໜ້າຫຼັກ — DANO1" },
+      { property: "og:title", content: "Gamelao — ເຕີມເກມອອນລາຍ" },
       { property: "og:description", content: "ເລືອກເກມ ຫຼື ບັດເຕີມເງິນທີ່ຕ້ອງການເຕີມ" },
     ],
   }),
@@ -35,6 +37,8 @@ function HomePage() {
   const [cards, setCards] = useState<Card[]>([]);
   const [selected, setSelected] = useState<Category | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -50,58 +54,64 @@ function HomePage() {
   }, []);
 
   function openTopup(c: Category) {
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
     setSelected(c);
     setDialogOpen(true);
   }
 
   return (
-    <div className="px-4 space-y-6">
-      <SectionTitle icon={<Flame className="size-4 text-primary" />} title="ເກມທີ່ໄດ້ຮັບຄວາມນິຍົມ" />
-      {popular.length === 0 ? (
-        <EmptyState text="ຍັງບໍ່ມີສິນຄ້າ — ລໍຖ້າແອດມິນເພີ່ມ" />
-      ) : (
-        <div className="grid grid-cols-3 gap-3">
-          {popular.map((c) => (
-            <GameTile key={c.id} category={c} onClick={() => openTopup(c)} hot />
-          ))}
-        </div>
-      )}
-
-      <SectionTitle icon={<CreditCard className="size-4 text-accent" />} title="ບັດເຕີມເງິນ" />
-      {cards.length === 0 ? (
-        <EmptyState text="ຍັງບໍ່ມີບັດເຕີມເງິນ" />
-      ) : (
-        <div className="-mx-4 px-4 overflow-x-auto no-scrollbar">
-          <div className="flex gap-3 min-w-max pb-1">
-            {cards.map((c) => (
-              <div key={c.id} className="w-40 card-tile overflow-hidden shrink-0">
-                {c.image_url ? (
-                  <img src={c.image_url} alt={c.name} className="w-full aspect-square object-cover" />
-                ) : (
-                  <div className="w-full aspect-square bg-primary/10 grid place-items-center">
-                    <CreditCard className="size-8 text-primary" />
-                  </div>
-                )}
-                <div className="p-2 text-center text-xs font-medium truncate">{c.name}</div>
-              </div>
+    <AppShell>
+      <div className="px-4 space-y-6">
+        <SectionTitle icon={<Flame className="size-4 text-primary" />} title="ເກມທີ່ໄດ້ຮັບຄວາມນິຍົມ" />
+        {popular.length === 0 ? (
+          <EmptyState text="ຍັງບໍ່ມີສິນຄ້າ — ລໍຖ້າແອດມິນເພີ່ມ" />
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {popular.map((c) => (
+              <GameTile key={c.id} category={c} onClick={() => openTopup(c)} hot />
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      <SectionTitle icon={<Gamepad2 className="size-4 text-primary" />} title="ເກມອື່ນໆ" />
-      {others.length === 0 ? (
-        <EmptyState text="ຍັງບໍ່ໄດ້ເພີ່ມ" />
-      ) : (
-        <div className="grid grid-cols-3 gap-3">
-          {others.map((c) => (
-            <GameTile key={c.id} category={c} onClick={() => openTopup(c)} />
-          ))}
-        </div>
-      )}
+        <SectionTitle icon={<CreditCard className="size-4 text-accent" />} title="ບັດເຕີມເງິນ" />
+        {cards.length === 0 ? (
+          <EmptyState text="ຍັງບໍ່ມີບັດເຕີມເງິນ" />
+        ) : (
+          <div className="-mx-4 px-4 overflow-x-auto no-scrollbar">
+            <div className="flex gap-3 min-w-max pb-1">
+              {cards.map((c) => (
+                <div key={c.id} className="w-40 card-tile overflow-hidden shrink-0">
+                  {c.image_url ? (
+                    <img src={c.image_url} alt={c.name} className="w-full aspect-square object-cover" />
+                  ) : (
+                    <div className="w-full aspect-square bg-primary/10 grid place-items-center">
+                      <CreditCard className="size-8 text-primary" />
+                    </div>
+                  )}
+                  <div className="p-2 text-center text-xs font-medium truncate">{c.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-      <TopupGameDialog category={selected} open={dialogOpen} onOpenChange={setDialogOpen} />
-    </div>
+        <SectionTitle icon={<Gamepad2 className="size-4 text-primary" />} title="ເກມອື່ນໆ" />
+        {others.length === 0 ? (
+          <EmptyState text="ຍັງບໍ່ໄດ້ເພີ່ມ" />
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {others.map((c) => (
+              <GameTile key={c.id} category={c} onClick={() => openTopup(c)} />
+            ))}
+          </div>
+        )}
+
+        <TopupGameDialog category={selected} open={dialogOpen} onOpenChange={setDialogOpen} />
+      </div>
+    </AppShell>
   );
 }
 

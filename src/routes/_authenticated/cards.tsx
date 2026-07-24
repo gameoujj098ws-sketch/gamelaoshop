@@ -9,9 +9,9 @@ interface Card { id: string; name: string; image_url: string | null }
 export const Route = createFileRoute("/_authenticated/cards")({
   head: () => ({
     meta: [
-      { title: "ບັດເກມທັງໝົດ — DANO1" },
+      { title: "ບັດເກມທັງໝົດ — Gamelao" },
       { name: "description", content: "ບັດເຕີມເງິນ ແລະ ບັດເກມທຸກປະເພດ ໃນເວັບດຽວ" },
-      { property: "og:title", content: "ບັດເກມທັງໝົດ — DANO1" },
+      { property: "og:title", content: "ບັດເກມທັງໝົດ — Gamelao" },
       { property: "og:description", content: "ບັດເຕີມເງິນ ແລະ ບັດເກມທຸກປະເພດ ໃນເວັບດຽວ" },
     ],
   }),

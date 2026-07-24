@@ -4,9 +4,9 @@ import { Settings } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "ຕັ້ງຄ່າ — DANO1" },
+      { title: "ຕັ້ງຄ່າ — Gamelao" },
       { name: "description", content: "ຕັ້ງຄ່າທົ່ວໄປຂອງບັນຊີ" },
-      { property: "og:title", content: "ຕັ້ງຄ່າ — DANO1" },
+      { property: "og:title", content: "ຕັ້ງຄ່າ — Gamelao" },
       { property: "og:description", content: "ຕັ້ງຄ່າທົ່ວໄປຂອງບັນຊີ" },
     ],
   }),

@@ -52,9 +52,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "DANO1 — ເຕີມເກມອອນລາຍ" },
+      { title: "Gamelao — ເຕີມເກມອອນລາຍ" },
       { name: "description", content: "ເຕີມເກມ, ບັດເຕີມເງິນ, ແພັກເກັດເກມທຸກປະເພດ ໃນເວັບດຽວ" },
-      { property: "og:title", content: "DANO1 — ເຕີມເກມອອນລາຍ" },
+      { property: "og:title", content: "Gamelao — ເຕີມເກມອອນລາຍ" },
       { property: "og:description", content: "ເຕີມເກມ ແລະ ບັດເຕີມເງິນທຸກປະເພດ" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

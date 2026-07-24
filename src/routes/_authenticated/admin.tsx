@@ -5,9 +5,9 @@ import { Shield } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "ໜ້າແອດມິນ — DANO1" },
+      { title: "ໜ້າແອດມິນ — Gamelao" },
       { name: "description", content: "ຈັດການລະບົບ" },
-      { property: "og:title", content: "ໜ້າແອດມິນ — DANO1" },
+      { property: "og:title", content: "ໜ້າແອດມິນ — Gamelao" },
       { property: "og:description", content: "ຈັດການລະບົບ" },
       { name: "robots", content: "noindex" },
     ],

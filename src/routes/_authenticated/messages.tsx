@@ -9,9 +9,9 @@ interface Msg { id: string; title: string | null; body: string; created_at: stri
 export const Route = createFileRoute("/_authenticated/messages")({
   head: () => ({
     meta: [
-      { title: "ຂໍ້ຄວາມ — DANO1" },
+      { title: "ຂໍ້ຄວາມ — Gamelao" },
       { name: "description", content: "ຂໍ້ຄວາມແຈ້ງເຕືອນຈາກແອດມິນ" },
-      { property: "og:title", content: "ຂໍ້ຄວາມ — DANO1" },
+      { property: "og:title", content: "ຂໍ້ຄວາມ — Gamelao" },
       { property: "og:description", content: "ຂໍ້ຄວາມແຈ້ງເຕືອນຈາກແອດມິນ" },
     ],
   }),
