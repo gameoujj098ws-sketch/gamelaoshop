@@ -56,9 +56,20 @@ export function TopBar() {
         </Link>
 
         <div className="flex items-center gap-3">
-          <Moon className="size-4 text-muted-foreground" aria-hidden />
-          <div className="text-sm font-bold text-success">{formatKip(balance)} ₭</div>
-          <ProfileMenu username={username} />
+          {user ? (
+            <>
+              <Moon className="size-4 text-muted-foreground" aria-hidden />
+              <div className="text-sm font-bold text-success">{formatKip(balance)} ₭</div>
+              <ProfileMenu username={username} />
+            </>
+          ) : (
+            <Link
+              to="/auth"
+              className="btn-neon px-3 py-1.5 text-xs font-bold"
+            >
+              ເຂົ້າສູ່ລະບົບ
+            </Link>
+          )}
         </div>
       </div>
     </header>
