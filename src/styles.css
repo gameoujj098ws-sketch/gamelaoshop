@@ -115,3 +115,7 @@
   border-radius: 999px;
   box-shadow: 0 6px 18px -6px oklch(0.75 0.25 340 / 70%);
 }
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
