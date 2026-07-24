@@ -5,9 +5,9 @@ import { Construction } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({
     meta: [
-      { title: "ປະຫວັດ — DANO1" },
+      { title: "ປະຫວັດ — Gamelao" },
       { name: "description", content: "ປະຫວັດການເຕີມເງິນ, ຄຳສັ່ງຊື້ ແລະ ການເຂົ້າໃຊ້ງານ" },
-      { property: "og:title", content: "ປະຫວັດ — DANO1" },
+      { property: "og:title", content: "ປະຫວັດ — Gamelao" },
       { property: "og:description", content: "ປະຫວັດການເຕີມເງິນ, ຄຳສັ່ງຊື້ ແລະ ການເຂົ້າໃຊ້ງານ" },
     ],
   }),

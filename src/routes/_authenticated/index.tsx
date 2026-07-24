@@ -20,9 +20,9 @@ interface Card {
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
-      { title: "ໜ້າຫຼັກ — ເຕີມເກມ | DANO1" },
+      { title: "ໜ້າຫຼັກ — ເຕີມເກມ | Gamelao" },
       { name: "description", content: "ເລືອກເກມ ຫຼື ບັດເຕີມເງິນທີ່ຕ້ອງການເຕີມ" },
-      { property: "og:title", content: "ໜ້າຫຼັກ — DANO1" },
+      { property: "og:title", content: "ໜ້າຫຼັກ — Gamelao" },
       { property: "og:description", content: "ເລືອກເກມ ຫຼື ບັດເຕີມເງິນທີ່ຕ້ອງການເຕີມ" },
     ],
   }),

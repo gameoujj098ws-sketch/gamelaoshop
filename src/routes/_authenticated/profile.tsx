@@ -8,9 +8,9 @@ import { User } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "ໂປຣຟາຍ — DANO1" },
+      { title: "ໂປຣຟາຍ — Gamelao" },
       { name: "description", content: "ຂໍ້ມູນບັນຊີຂອງທ່ານ" },
-      { property: "og:title", content: "ໂປຣຟາຍ — DANO1" },
+      { property: "og:title", content: "ໂປຣຟາຍ — Gamelao" },
       { property: "og:description", content: "ຂໍ້ມູນບັນຊີຂອງທ່ານ" },
     ],
   }),

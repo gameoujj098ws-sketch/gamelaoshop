@@ -13,9 +13,9 @@ import { Gamepad2 } from "lucide-react";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "ເຂົ້າສູ່ລະບົບ — DANO1" },
+      { title: "ເຂົ້າສູ່ລະບົບ — Gamelao" },
       { name: "description", content: "ເຂົ້າສູ່ລະບົບ ຫຼື ສະໝັກສະມາຊິກ ເພື່ອເຕີມເກມ" },
-      { property: "og:title", content: "ເຂົ້າສູ່ລະບົບ — DANO1" },
+      { property: "og:title", content: "ເຂົ້າສູ່ລະບົບ — Gamelao" },
       { property: "og:description", content: "ເຂົ້າສູ່ລະບົບ ຫຼື ສະໝັກສະມາຊິກ" },
     ],
   }),
@@ -91,7 +91,7 @@ function AuthPage() {
           <div className="rounded-2xl p-3 bg-gradient-to-br from-primary to-accent neon-glow">
             <Gamepad2 className="size-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">DANO1</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Gamelao</h1>
           <p className="text-sm text-muted-foreground">ເຕີມເກມອອນລາຍ — ໄວ, ປອດໄພ</p>
         </div>
 
