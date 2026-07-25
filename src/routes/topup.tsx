@@ -1,6 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Wallet } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
+import { useAuth } from "@/lib/auth-context";
+import { useServerFn } from "@tanstack/react-start";
+import { createTopupRequest, cancelTopup, submitSlip } from "@/lib/topup.functions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import QRCode from "qrcode";
+import { CheckCircle2, XCircle, Upload, Copy, QrCode as QrIcon, Ticket, Loader2, ArrowLeft, Wallet } from "lucide-react";
+import { formatKip } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/topup")({
   head: () => ({
@@ -8,24 +19,372 @@ export const Route = createFileRoute("/topup")({
       { title: "ເຕີມເຄຣດິດ — Gamelao" },
       { name: "description", content: "ເຕີມເງິນເຂົ້າກະເປົາ Gamelao ຜ່ານ QR Code ຫຼື ໂຄດ" },
       { property: "og:title", content: "ເຕີມເຄຣດິດ — Gamelao" },
-      { property: "og:description", content: "ເຕີມເງິນເຂົ້າກະເປົາ Gamelao ຜ່ານ QR Code ຫຼື ໂຄດ" },
+      { property: "og:description", content: "ເຕີມເງິນເຂົ້າກະເປົາ Gamelao" },
     ],
   }),
   component: TopupPage,
 });
 
+const PRESETS = [10_000, 50_000, 100_000, 200_000, 500_000, 1_000_000];
+const RECEIVER_NAME = "SOMYONE KHAMKHEUNG MR";
+
+type Step = "choose" | "qr" | "amount";
+
 function TopupPage() {
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="grid place-items-center py-20">
+          <Loader2 className="size-6 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!session) {
+    return (
+      <AppShell>
+        <div className="px-4">
+          <div className="card-tile p-6 text-center">
+            <Wallet className="size-8 text-primary mx-auto mb-3" />
+            <h2 className="font-bold">ເຕີມເຄຣດິດ</h2>
+            <p className="text-sm text-muted-foreground mt-2 mb-4">
+              ກະລຸນາເຂົ້າສູ່ລະບົບກ່ອນຈຶ່ງຈະສາມາດເຕີມເງິນໄດ້
+            </p>
+            <Link to="/auth" className="btn-neon inline-block rounded-full px-6 py-2 text-sm">
+              ເຂົ້າສູ່ລະບົບ
+            </Link>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
-      <div className="px-4">
-        <div className="card-tile p-6 text-center">
-          <Wallet className="size-8 text-primary mx-auto mb-3" />
-          <h2 className="font-bold">ເຕີມເຄຣດິດ</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            QR Code + ໂຄດ + ຕົວກວດສອບສະລິບອັດຕະໂນມັດ ຈະຖືກເປີດໃນເຟດຕໍ່ໄປ
-          </p>
-        </div>
-      </div>
+      <TopupFlow />
     </AppShell>
   );
+}
+
+function TopupFlow() {
+  const [step, setStep] = useState<Step>("choose");
+  const [amount, setAmount] = useState<number>(0);
+  const [customAmount, setCustomAmount] = useState<string>("");
+  const [request, setRequest] = useState<{ id: string; amount: number; expires_at: string; reference_code: string | null } | null>(null);
+
+  const create = useServerFn(createTopupRequest);
+  const cancel = useServerFn(cancelTopup);
+
+  async function proceedQr() {
+    const value = customAmount ? parseInt(customAmount, 10) : amount;
+    if (!value || value < 1000) {
+      toast.error("ກະລຸນາເລືອກ ຫຼື ໃສ່ຈຳນວນເງິນ (ຢ່າງໜ້ອຍ 1,000 ₭)");
+      return;
+    }
+    try {
+      const res = await create({ data: { amount: value } });
+      setRequest(res.request);
+      setStep("qr");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ເກີດຂໍ້ຜິດພາດ");
+    }
+  }
+
+  async function handleCancel() {
+    if (request) await cancel({ data: { id: request.id } });
+    setRequest(null);
+    setStep("choose");
+  }
+
+  if (step === "qr" && request) {
+    return (
+      <QrStep
+        request={request}
+        onExpire={handleCancel}
+        onDone={handleCancel}
+      />
+    );
+  }
+
+  if (step === "amount") {
+    return (
+      <AmountStep
+        amount={amount}
+        setAmount={setAmount}
+        customAmount={customAmount}
+        setCustomAmount={setCustomAmount}
+        onBack={() => setStep("choose")}
+        onNext={proceedQr}
+      />
+    );
+  }
+
+  return <ChooseMethod onQr={() => setStep("amount")} />;
+}
+
+function ChooseMethod({ onQr }: { onQr: () => void }) {
+  return (
+    <div className="px-4 space-y-4">
+      <div className="card-tile p-5">
+        <h2 className="text-base font-bold mb-1">ເລືອກຊ່ອງທາງເຕີມເງິນ</h2>
+        <p className="text-xs text-muted-foreground">ເລືອກວິທີເຕີມເງິນທີ່ທ່ານຕ້ອງການ</p>
+      </div>
+
+      <button
+        onClick={onQr}
+        className="w-full card-tile p-5 flex items-center gap-4 text-left hover:border-primary/60 transition"
+      >
+        <div className="size-12 rounded-xl bg-primary/20 grid place-items-center">
+          <QrIcon className="size-6 text-primary" />
+        </div>
+        <div className="flex-1">
+          <div className="font-semibold">ເຕີມຜ່ານ QR Code</div>
+          <div className="text-xs text-muted-foreground">ໂອນຜ່ານທະນາຄານ + ແນບສະລິບ</div>
+        </div>
+      </button>
+
+      <Link to="/cards" className="w-full card-tile p-5 flex items-center gap-4 text-left hover:border-primary/60 transition">
+        <div className="size-12 rounded-xl bg-primary/20 grid place-items-center">
+          <Ticket className="size-6 text-primary" />
+        </div>
+        <div className="flex-1">
+          <div className="font-semibold">ເຕີມດ້ວຍໂຄດ</div>
+          <div className="text-xs text-muted-foreground">ໃສ່ໂຄດເຕີມເງິນ, ເຂົ້າກະເປົາທັນທີ</div>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+function AmountStep({
+  amount, setAmount, customAmount, setCustomAmount, onBack, onNext,
+}: {
+  amount: number;
+  setAmount: (v: number) => void;
+  customAmount: string;
+  setCustomAmount: (v: string) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="px-4 space-y-4">
+      <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground">
+        <ArrowLeft className="size-4" /> ກັບຄືນ
+      </button>
+      <div className="card-tile p-5">
+        <h2 className="text-base font-bold mb-3">ເລືອກຈຳນວນເງິນ</h2>
+        <div className="grid grid-cols-3 gap-2">
+          {PRESETS.map((p) => (
+            <button
+              key={p}
+              onClick={() => { setAmount(p); setCustomAmount(""); }}
+              className={cn(
+                "rounded-xl border p-3 text-sm font-semibold cursor-pointer transition-all",
+                amount === p && !customAmount
+                  ? "border-primary bg-primary/10 neon-glow"
+                  : "border-border/60 bg-surface hover:border-primary/50",
+              )}
+            >
+              {formatKip(p)} ₭
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <Label className="text-xs">ຫຼື ກຳນົດຈຳນວນເອງ</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            value={customAmount}
+            onChange={(e) => { setCustomAmount(e.target.value); setAmount(0); }}
+            placeholder="ຈຳນວນເງິນ (ກີບ)"
+            className="mt-1"
+          />
+        </div>
+      </div>
+
+      <Button onClick={onNext} className="w-full btn-neon">ສ້າງ QR Code</Button>
+    </div>
+  );
+}
+
+function QrStep({
+  request, onExpire, onDone,
+}: {
+  request: { id: string; amount: number; expires_at: string; reference_code: string | null };
+  onExpire: () => void;
+  onDone: () => void;
+}) {
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(() =>
+    Math.max(0, Math.floor((new Date(request.expires_at).getTime() - Date.now()) / 1000)),
+  );
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const submit = useServerFn(submitSlip);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Build QR payload — a plain text description customer/bank apps can read.
+  const qrPayload = useMemo(
+    () =>
+      `Gamelao Topup\nBank: ${RECEIVER_NAME}\nAmount: ${request.amount} LAK\nRef: ${request.reference_code ?? request.id.slice(0, 8)}`,
+    [request],
+  );
+
+  useEffect(() => {
+    QRCode.toDataURL(qrPayload, { width: 320, margin: 1, color: { dark: "#0a0a12", light: "#ffffff" } }).then(setQrDataUrl);
+  }, [qrPayload]);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      const s = Math.max(0, Math.floor((new Date(request.expires_at).getTime() - Date.now()) / 1000));
+      setSecondsLeft(s);
+      if (s <= 0) {
+        clearInterval(t);
+        onExpire();
+      }
+    }, 1000);
+    return () => clearInterval(t);
+  }, [request.expires_at, onExpire]);
+
+  // Auto-close result popup
+  useEffect(() => {
+    if (!result) return;
+    const t = setTimeout(() => {
+      if (result.ok) onDone();
+      else setResult(null);
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [result, onDone]);
+
+  async function onFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("ກະລຸນາເລືອກຮູບພາບ");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      toast.error("ຮູບໃຫຍ່ເກີນ 6MB");
+      return;
+    }
+    setBusy(true);
+    try {
+      const b64 = await fileToBase64(file);
+      const res = await submit({
+        data: { request_id: request.id, image_base64: b64, mime: file.type },
+      });
+      if (res.ok) {
+        setResult({ ok: true, message: "ເຕີມເງິນສຳເລັດ! ຍອດເງິນເຂົ້າແລ້ວ" });
+      } else {
+        setResult({ ok: false, message: res.reason ?? "ບໍ່ສາມາດຢືນຢັນສະລິບໄດ້" });
+      }
+    } catch (e) {
+      setResult({ ok: false, message: e instanceof Error ? e.message : "ເກີດຂໍ້ຜິດພາດ" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+  const ss = String(secondsLeft % 60).padStart(2, "0");
+
+  return (
+    <div className="px-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">ຢືນຢັນການໂອນເງິນ</div>
+        <div className={cn("text-sm font-mono font-bold", secondsLeft < 60 ? "text-destructive" : "text-primary")}>
+          {mm}:{ss}
+        </div>
+      </div>
+
+      <div className="card-tile p-5 text-center space-y-3">
+        {qrDataUrl ? (
+          <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl bg-white p-2 size-64 object-contain" />
+        ) : (
+          <div className="size-64 mx-auto rounded-xl bg-surface grid place-items-center">
+            <Loader2 className="size-6 animate-spin text-primary" />
+          </div>
+        )}
+        <div className="text-xs text-muted-foreground">ຊື່ບັນຊີຜູ້ຮັບ</div>
+        <div className="font-bold flex items-center justify-center gap-2">
+          {RECEIVER_NAME}
+          <button
+            onClick={() => { navigator.clipboard.writeText(RECEIVER_NAME); toast.success("ຄັດລອກແລ້ວ"); }}
+            className="opacity-70 hover:opacity-100"
+          >
+            <Copy className="size-4" />
+          </button>
+        </div>
+        <div className="text-2xl font-bold text-success">{formatKip(request.amount)} ₭</div>
+        {request.reference_code && (
+          <div className="text-xs text-muted-foreground">
+            ລະຫັດອ້າງອີງ: <span className="font-mono">{request.reference_code}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="card-tile p-5">
+        <h3 className="font-bold text-sm mb-2">ແນບຮູບສະລິບການໂອນ</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          ຫຼັງຈາກໂອນເງິນສຳເລັດ ໃຫ້ແນບຮູບສະລິບ ລະບົບຈະກວດອັດຕະໂນມັດ
+        </p>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
+        />
+        <Button
+          onClick={() => fileRef.current?.click()}
+          disabled={busy || secondsLeft <= 0}
+          className="w-full btn-neon"
+        >
+          {busy ? (
+            <><Loader2 className="size-4 animate-spin mr-2" /> ກຳລັງກວດສະລິບ...</>
+          ) : (
+            <><Upload className="size-4 mr-2" /> ແນບຮູບສະລິບ</>
+          )}
+        </Button>
+      </div>
+
+      <Button variant="ghost" onClick={onDone} className="w-full text-muted-foreground">
+        ຍົກເລີກ
+      </Button>
+
+      {result && <ResultPopup ok={result.ok} message={result.message} onClose={() => (result.ok ? onDone() : setResult(null))} />}
+    </div>
+  );
+}
+
+function ResultPopup({ ok, message, onClose }: { ok: boolean; message: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm px-4">
+      <div className="w-full max-w-xs card-tile p-6 text-center space-y-3">
+        {ok ? (
+          <CheckCircle2 className="size-16 text-success mx-auto" />
+        ) : (
+          <XCircle className="size-16 text-destructive mx-auto" />
+        )}
+        <div className="font-bold text-base">{ok ? "ສຳເລັດ" : "ບໍ່ສຳເລັດ"}</div>
+        <div className="text-sm text-muted-foreground">{message}</div>
+        <Button onClick={onClose} className="w-full btn-neon">ຕົກລົງ</Button>
+      </div>
+    </div>
+  );
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const s = String(r.result);
+      const idx = s.indexOf(",");
+      resolve(idx >= 0 ? s.slice(idx + 1) : s);
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
 }
