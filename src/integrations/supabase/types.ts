@@ -317,6 +317,7 @@ export type Database = {
           bank_account_name: string | null
           bank_account_number: string | null
           bank_name: string | null
+          bank_qr_image_url: string | null
           contact_info: string | null
           id: number
           primary_color: string | null
@@ -326,6 +327,7 @@ export type Database = {
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_name?: string | null
+          bank_qr_image_url?: string | null
           contact_info?: string | null
           id?: number
           primary_color?: string | null
@@ -335,6 +337,7 @@ export type Database = {
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_name?: string | null
+          bank_qr_image_url?: string | null
           contact_info?: string | null
           id?: number
           primary_color?: string | null
@@ -348,11 +351,16 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          reference_code: string | null
           slip_hash: string | null
           slip_url: string | null
           status: string
           updated_at: string
           user_id: string
+          verified_amount: number | null
+          verified_at: string | null
+          verified_name: string | null
+          verified_ref: string | null
           verify_reason: string | null
         }
         Insert: {
@@ -360,11 +368,16 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          reference_code?: string | null
           slip_hash?: string | null
           slip_url?: string | null
           status?: string
           updated_at?: string
           user_id: string
+          verified_amount?: number | null
+          verified_at?: string | null
+          verified_name?: string | null
+          verified_ref?: string | null
           verify_reason?: string | null
         }
         Update: {
@@ -372,11 +385,16 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          reference_code?: string | null
           slip_hash?: string | null
           slip_url?: string | null
           status?: string
           updated_at?: string
           user_id?: string
+          verified_amount?: number | null
+          verified_at?: string | null
+          verified_name?: string | null
+          verified_ref?: string | null
           verify_reason?: string | null
         }
         Relationships: []
