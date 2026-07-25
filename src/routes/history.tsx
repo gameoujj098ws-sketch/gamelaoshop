@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { Construction } from "lucide-react";
+import { AppShell } from "@/components/app/AppShell";
 
 export const Route = createFileRoute("/history")({
   head: () => ({
