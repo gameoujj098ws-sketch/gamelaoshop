@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Wallet } from "lucide-react";
+import { AppShell } from "@/components/app/AppShell";
 
 export const Route = createFileRoute("/topup")({
   head: () => ({
