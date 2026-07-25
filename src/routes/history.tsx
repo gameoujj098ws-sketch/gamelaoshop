@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { Construction } from "lucide-react";
+import { AppShell } from "@/components/app/AppShell";
 
-export const Route = createFileRoute("/_authenticated/history")({
+export const Route = createFileRoute("/history")({
   head: () => ({
     meta: [
       { title: "ປະຫວັດ — Gamelao" },
@@ -17,14 +18,16 @@ export const Route = createFileRoute("/_authenticated/history")({
 
 function HistoryPage() {
   return (
-    <div className="px-4">
-      <div className="card-tile p-6 text-center">
-        <Construction className="size-8 text-primary mx-auto mb-3" />
-        <h2 className="font-bold">ປະຫວັດ</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          ຈະສະແດງປະຫວັດການເຕີມເງິນ, ຄຳສັ່ງຊື້ ແລະ ການເຂົ້າໃຊ້ງານ ໃນເຟດຕໍ່ໄປ
-        </p>
+    <AppShell>
+      <div className="px-4">
+        <div className="card-tile p-6 text-center">
+          <Construction className="size-8 text-primary mx-auto mb-3" />
+          <h2 className="font-bold">ປະຫວັດ</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            ຈະສະແດງປະຫວັດການເຕີມເງິນ, ຄຳສັ່ງຊື້ ແລະ ການເຂົ້າໃຊ້ງານ ໃນເຟດຕໍ່ໄປ
+          </p>
+        </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

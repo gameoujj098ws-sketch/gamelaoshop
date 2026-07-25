@@ -9,17 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TopupRouteImport } from './routes/topup'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedTopupRouteImport } from './routes/_authenticated/topup'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
-import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
-import { Route as AuthenticatedCardsRouteImport } from './routes/_authenticated/cards'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
+const TopupRoute = TopupRouteImport.update({
+  id: '/topup',
+  path: '/topup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CardsRoute = CardsRouteImport.update({
+  id: '/cards',
+  path: '/cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -33,11 +48,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedTopupRoute = AuthenticatedTopupRouteImport.update({
-  id: '/topup',
-  path: '/topup',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
@@ -54,16 +64,6 @@ const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCardsRoute = AuthenticatedCardsRouteImport.update({
-  id: '/cards',
-  path: '/cards',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -73,83 +73,107 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cards': typeof CardsRoute
+  '/history': typeof HistoryRoute
+  '/topup': typeof TopupRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/cards': typeof AuthenticatedCardsRoute
-  '/history': typeof AuthenticatedHistoryRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/topup': typeof AuthenticatedTopupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cards': typeof CardsRoute
+  '/history': typeof HistoryRoute
+  '/topup': typeof TopupRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/cards': typeof AuthenticatedCardsRoute
-  '/history': typeof AuthenticatedHistoryRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/topup': typeof AuthenticatedTopupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/cards': typeof CardsRoute
+  '/history': typeof HistoryRoute
+  '/topup': typeof TopupRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/_authenticated/cards': typeof AuthenticatedCardsRoute
-  '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/topup': typeof AuthenticatedTopupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
-    | '/admin'
     | '/cards'
     | '/history'
+    | '/topup'
+    | '/admin'
     | '/messages'
     | '/profile'
     | '/settings'
-    | '/topup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
-    | '/admin'
     | '/cards'
     | '/history'
+    | '/topup'
+    | '/admin'
     | '/messages'
     | '/profile'
     | '/settings'
-    | '/topup'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/cards'
+    | '/history'
+    | '/topup'
     | '/_authenticated/admin'
-    | '/_authenticated/cards'
-    | '/_authenticated/history'
     | '/_authenticated/messages'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
-    | '/_authenticated/topup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CardsRoute: typeof CardsRoute
+  HistoryRoute: typeof HistoryRoute
+  TopupRoute: typeof TopupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/topup': {
+      id: '/topup'
+      path: '/topup'
+      fullPath: '/topup'
+      preLoaderRoute: typeof TopupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cards': {
+      id: '/cards'
+      path: '/cards'
+      fullPath: '/cards'
+      preLoaderRoute: typeof CardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -170,13 +194,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/topup': {
-      id: '/_authenticated/topup'
-      path: '/topup'
-      fullPath: '/topup'
-      preLoaderRoute: typeof AuthenticatedTopupRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -199,20 +216,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/history': {
-      id: '/_authenticated/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof AuthenticatedHistoryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cards': {
-      id: '/_authenticated/cards'
-      path: '/cards'
-      fullPath: '/cards'
-      preLoaderRoute: typeof AuthenticatedCardsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -225,22 +228,16 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedCardsRoute: typeof AuthenticatedCardsRoute
-  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedTopupRoute: typeof AuthenticatedTopupRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedCardsRoute: AuthenticatedCardsRoute,
-  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedTopupRoute: AuthenticatedTopupRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -250,17 +247,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CardsRoute: CardsRoute,
+  HistoryRoute: HistoryRoute,
+  TopupRoute: TopupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
