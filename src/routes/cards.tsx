@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { CreditCard, Search } from "lucide-react";
+import { AppShell } from "@/components/app/AppShell";
 
 interface Card { id: string; name: string; image_url: string | null }
 
