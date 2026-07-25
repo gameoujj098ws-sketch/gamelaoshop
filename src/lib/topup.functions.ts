@@ -234,6 +234,8 @@ export const submitSlip = createServerFn({ method: "POST" })
     }
 
     const failGeneric = "ບໍ່ສາມາດຢືນຢັນຂໍ້ມູນສະລິບໄດ້, ກະລຸນາກວດເບິ່ງແລ້ວລອງໃໝ່";
+    const reqId = req.id;
+    const reqAmount = req.amount;
     async function reject(reasonCode: string) {
       await supabase.from("topup_requests")
         .update({
@@ -245,7 +247,7 @@ export const submitSlip = createServerFn({ method: "POST" })
           verified_name: verdict?.receiver_name ?? null,
           verified_ref: verdict?.reference ?? null,
         })
-        .eq("id", req.id);
+        .eq("id", reqId);
     }
 
     if (!verdict) {
