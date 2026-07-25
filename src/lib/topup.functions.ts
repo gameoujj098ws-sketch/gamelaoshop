@@ -351,8 +351,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       const rows = admins.map((a) => ({
         user_id: a.user_id,
         title: "ມີການເຕີມເງິນສຳເລັດ",
-        body: `ຜູ້ໃຊ້ເຕີມ ${req.amount.toLocaleString()} ₭ (${verdict.reference})`,
-        kind: "topup_approved",
+        body: `ຜູ້ໃຊ້ເຕີມ ${reqAmount.toLocaleString()} ₭ (${verdict.reference})`,
       }));
       await supabaseAdmin.from("notifications").insert(rows);
     }
