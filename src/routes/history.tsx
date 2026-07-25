@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { Construction } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/history")({
+export const Route = createFileRoute("/history")({
   head: () => ({
     meta: [
       { title: "ປະຫວັດ — Gamelao" },

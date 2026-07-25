@@ -6,7 +6,7 @@ import { CreditCard, Search } from "lucide-react";
 
 interface Card { id: string; name: string; image_url: string | null }
 
-export const Route = createFileRoute("/_authenticated/cards")({
+export const Route = createFileRoute("/cards")({
   head: () => ({
     meta: [
       { title: "ບັດເກມທັງໝົດ — Gamelao" },

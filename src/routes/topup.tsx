@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Wallet } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/topup")({
+export const Route = createFileRoute("/topup")({
   head: () => ({
     meta: [
       { title: "ເຕີມເຄຣດິດ — Gamelao" },
