@@ -1,33 +1,67 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { AdminUsers } from "@/components/admin/AdminUsers";
+import { AdminCategories } from "@/components/admin/AdminCategories";
+import { AdminOrders } from "@/components/admin/AdminOrders";
+import { AdminSettings } from "@/components/admin/AdminSettings";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "ໜ້າແອດມິນ — Gamelao" },
-      { name: "description", content: "ຈັດການລະບົບ" },
+      { name: "description", content: "ຈັດການລະບົບ Gamelao: ສະຖິຕິ, ຜູ້ໃຊ້, ໝວດໝູ່ເກມ, ອໍເດີ ແລະ ຕັ້ງຄ່າ" },
       { property: "og:title", content: "ໜ້າແອດມິນ — Gamelao" },
-      { property: "og:description", content: "ຈັດການລະບົບ" },
+      { property: "og:description", content: "ຈັດການລະບົບ Gamelao" },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: AdminPage,
 });
 
+const TABS = [
+  { key: "dashboard", label: "ສະຖິຕິ" },
+  { key: "users", label: "ຜູ້ໃຊ້" },
+  { key: "categories", label: "ໝວດໝູ່" },
+  { key: "orders", label: "ອໍເດີ" },
+  { key: "settings", label: "ຕັ້ງຄ່າ" },
+] as const;
+
 function AdminPage() {
   const { isAdmin, loading } = useAuth();
+  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("dashboard");
+
   if (loading) return null;
   if (!isAdmin) return <Navigate to="/" replace />;
+
   return (
-    <div className="px-4">
-      <div className="card-tile p-6 text-center">
-        <Shield className="size-8 text-primary mx-auto mb-3" />
-        <h2 className="font-bold">ໜ້າແອດມິນ</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          ໜ້າຈັດການ (Dashboard, ຜູ້ໃຊ້, ໝວດໝູ່ເກມ, ອໍເດີ, ຕັ້ງຄ່າ) ຈະຖືກເປີດໃນເຟດ 3
-        </p>
+    <div className="px-4 space-y-4">
+      <h1 className="text-lg font-bold">ໜ້າແອດມິນ</h1>
+
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={cn(
+              "rounded-full px-4 py-1.5 text-xs whitespace-nowrap border cursor-pointer",
+              tab === t.key
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 bg-surface text-muted-foreground",
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
+
+      {tab === "dashboard" && <AdminDashboard />}
+      {tab === "users" && <AdminUsers />}
+      {tab === "categories" && <AdminCategories />}
+      {tab === "orders" && <AdminOrders />}
+      {tab === "settings" && <AdminSettings />}
     </div>
   );
 }
