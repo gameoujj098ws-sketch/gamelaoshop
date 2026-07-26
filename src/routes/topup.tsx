@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/lib/auth-context";
 import { useServerFn } from "@tanstack/react-start";
-import { createTopupRequest, cancelTopup, submitSlip } from "@/lib/topup.functions";
+import { createTopupRequest, cancelTopup, submitSlip, getActiveTopup } from "@/lib/topup.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,6 +77,27 @@ function TopupFlow() {
 
   const create = useServerFn(createTopupRequest);
   const cancel = useServerFn(cancelTopup);
+  const active = useServerFn(getActiveTopup);
+  const [restoring, setRestoring] = useState(true);
+
+  // Restore an in-flight request so the QR survives page switches until it
+  // expires (15 min) or the user cancels.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await active({ data: undefined as never });
+        if (res.request) {
+          setRequest(res.request as never);
+          setStep("qr");
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setRestoring(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function proceedQr() {
     const value = customAmount ? parseInt(customAmount, 10) : amount;
@@ -97,6 +118,14 @@ function TopupFlow() {
     if (request) await cancel({ data: { id: request.id } });
     setRequest(null);
     setStep("choose");
+  }
+
+  if (restoring) {
+    return (
+      <div className="grid place-items-center py-20">
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+    );
   }
 
   if (step === "qr" && request) {
@@ -180,10 +209,10 @@ function AmountStep({
           {PRESETS.map((p) => (
             <button
               key={p}
-              onClick={() => { setAmount(p); setCustomAmount(""); }}
+              onClick={() => { setAmount(p); setCustomAmount(String(p)); }}
               className={cn(
                 "rounded-xl border p-3 text-sm font-semibold cursor-pointer transition-all",
-                amount === p && !customAmount
+                Number(customAmount) === p
                   ? "border-primary bg-primary/10 neon-glow"
                   : "border-border/60 bg-surface hover:border-primary/50",
               )}
