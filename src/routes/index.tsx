@@ -21,10 +21,10 @@ interface Card {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ໜ້າຫຼັກ — ເຕີມເກມ | Gamelao" },
-      { name: "description", content: "ເລືອກເກມ ຫຼື ບັດເຕີມເງິນທີ່ຕ້ອງການເຕີມ" },
-      { property: "og:title", content: "Gamelao — ເຕີມເກມອອນລາຍ" },
-      { property: "og:description", content: "ເລືອກເກມ ຫຼື ບັດເຕີມເງິນທີ່ຕ້ອງການເຕີມ" },
+      { title: "Game Lao Shop" },
+      { name: "description", content: "ເຕີນເກມ" },
+      { property: "og:title", content: "Game Lao Shop" },
+      { property: "og:description", content: "ເຕີນເກມ" },
     ],
   }),
   component: HomePage,
