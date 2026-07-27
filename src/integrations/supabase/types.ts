@@ -191,27 +191,39 @@ export type Database = {
         Row: {
           category_id: string
           created_at: string
+          description: string | null
           id: string
+          image_url: string | null
           is_active: boolean
+          is_best_seller: boolean
           name: string
+          original_price: number | null
           price: number
           sort_order: number
         }
         Insert: {
           category_id: string
           created_at?: string
+          description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
+          is_best_seller?: boolean
           name: string
+          original_price?: number | null
           price: number
           sort_order?: number
         }
         Update: {
           category_id?: string
           created_at?: string
+          description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
+          is_best_seller?: boolean
           name?: string
+          original_price?: number | null
           price?: number
           sort_order?: number
         }

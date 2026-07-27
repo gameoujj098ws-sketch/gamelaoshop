@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Flame, CreditCard, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TopupGameDialog } from "@/components/app/TopupGameDialog";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/lib/auth-context";
 
@@ -35,8 +34,6 @@ function HomePage() {
   const [popular, setPopular] = useState<Category[]>([]);
   const [others, setOthers] = useState<Category[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
-  const [selected, setSelected] = useState<Category | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -58,8 +55,7 @@ function HomePage() {
       navigate({ to: "/auth" });
       return;
     }
-    setSelected(c);
-    setDialogOpen(true);
+    navigate({ to: "/game/$id", params: { id: c.id } });
   }
 
   return (
@@ -87,9 +83,7 @@ function HomePage() {
                   {c.image_url ? (
                     <img src={c.image_url} alt={c.name} className="w-full aspect-square object-cover" />
                   ) : (
-                    <div className="w-full aspect-square bg-primary/10 grid place-items-center">
-                      <CreditCard className="size-8 text-primary" />
-                    </div>
+                    <div className="w-full aspect-square bg-surface" />
                   )}
                   <div className="p-2 text-center text-xs font-medium truncate">{c.name}</div>
                 </div>
@@ -108,8 +102,6 @@ function HomePage() {
             ))}
           </div>
         )}
-
-        <TopupGameDialog category={selected} open={dialogOpen} onOpenChange={setDialogOpen} />
       </div>
     </AppShell>
   );
@@ -135,13 +127,9 @@ function GameTile({
 }: { category: Category; onClick: () => void; hot?: boolean }) {
   return (
     <div className="card-tile p-2 flex flex-col gap-2">
-      <div className="relative aspect-square rounded-lg overflow-hidden bg-primary/10">
-        {category.image_url ? (
+      <div className="relative aspect-square rounded-lg overflow-hidden bg-surface">
+        {category.image_url && (
           <img src={category.image_url} alt={category.name} className="size-full object-cover" />
-        ) : (
-          <div className="size-full grid place-items-center">
-            <Gamepad2 className="size-8 text-primary/70" />
-          </div>
         )}
         {hot && (
           <span className="absolute top-1 right-1 rounded-md bg-destructive text-destructive-foreground text-[9px] font-bold px-1.5 py-0.5">
