@@ -117,6 +117,10 @@ export const adminSavePackage = createServerFn({ method: "POST" })
         category_id: z.string().uuid(),
         name: z.string().min(1).max(80),
         price: z.number().int().min(0),
+        original_price: z.number().int().min(0).nullable().optional(),
+        image_url: z.string().max(500).nullable().optional(),
+        description: z.string().max(500).nullable().optional(),
+        is_best_seller: z.boolean().default(false),
         sort_order: z.number().int().default(0),
         is_active: z.boolean().default(true),
       })
@@ -128,6 +132,10 @@ export const adminSavePackage = createServerFn({ method: "POST" })
       category_id: data.category_id,
       name: data.name,
       price: data.price,
+      original_price: data.original_price ?? null,
+      image_url: data.image_url || null,
+      description: data.description || null,
+      is_best_seller: data.is_best_seller,
       sort_order: data.sort_order,
       is_active: data.is_active,
     };

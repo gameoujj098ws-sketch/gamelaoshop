@@ -7,13 +7,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatKip } from "@/lib/format";
 import { Plus, Trash2, Pencil, Package, ListPlus, Loader2 } from "lucide-react";
 
 interface Cat { id: string; name: string; image_url: string | null; section: string; sort_order: number; is_active: boolean }
-interface Pkg { id: string; category_id: string; name: string; price: number; sort_order: number; is_active: boolean }
+interface Pkg {
+  id: string; category_id: string; name: string; price: number; sort_order: number; is_active: boolean;
+  image_url: string | null; description: string | null; original_price: number | null; is_best_seller: boolean;
+}
 interface Fld { id: string; category_id: string; label: string; placeholder: string | null; sort_order: number }
 
 export function AdminCategories() {
@@ -100,7 +104,11 @@ export function AdminCategories() {
           <div className="space-y-1">
             {pkgs.filter((p) => p.category_id === c.id).map((p) => (
               <div key={p.id} className="flex items-center gap-2 rounded-lg bg-surface px-3 py-2 text-sm">
-                <span className="flex-1 truncate">{p.name}</span>
+                {p.image_url && <img src={p.image_url} alt={p.name} className="size-7 rounded object-contain" />}
+                <span className="flex-1 truncate">
+                  {p.name}
+                  {p.is_best_seller && <span className="ml-1 text-[9px] text-accent">★ ຂາຍດີ</span>}
+                </span>
                 <span className="text-success text-xs">{formatKip(p.price)} ₭</span>
                 <button className="text-muted-foreground hover:text-primary" onClick={() => setPkgFor({ cat: c, pkg: p })}>
                   <Pencil className="size-3.5" />
@@ -211,28 +219,54 @@ function PackageDialog({ pkg, categoryId, onClose, onSave }: {
   pkg: Pkg | null;
   categoryId: string;
   onClose: () => void;
-  onSave: (v: { id?: string; category_id: string; name: string; price: number; sort_order: number; is_active: boolean }) => Promise<void>;
+  onSave: (v: {
+    id?: string; category_id: string; name: string; price: number;
+    original_price: number | null; image_url: string | null; description: string | null;
+    is_best_seller: boolean; sort_order: number; is_active: boolean;
+  }) => Promise<void>;
 }) {
   const [name, setName] = useState(pkg?.name ?? "");
   const [price, setPrice] = useState(String(pkg?.price ?? ""));
+  const [orig, setOrig] = useState(pkg?.original_price ? String(pkg.original_price) : "");
+  const [img, setImg] = useState(pkg?.image_url ?? "");
+  const [desc, setDesc] = useState(pkg?.description ?? "");
+  const [best, setBest] = useState(pkg?.is_best_seller ?? false);
   const [sort, setSort] = useState(String(pkg?.sort_order ?? 0));
   const [busy, setBusy] = useState(false);
+  const off = orig && parseInt(orig, 10) > parseInt(price || "0", 10)
+    ? Math.round(((parseInt(orig, 10) - parseInt(price || "0", 10)) / parseInt(orig, 10)) * 100)
+    : 0;
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="bg-surface-2 border-border max-w-sm">
         <DialogHeader><DialogTitle>{pkg ? "ແກ້ໄຂແພັກເກັດ" : "ເພີ່ມແພັກເກັດ"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div><Label className="text-xs">ຊື່ແພັກເກັດ</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" /></div>
-          <div><Label className="text-xs">ລາຄາ (ກີບ)</Label><Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1" /></div>
-          <div><Label className="text-xs">ລຳດັບ</Label><Input type="number" value={sort} onChange={(e) => setSort(e.target.value)} className="mt-1" /></div>
+          <div><Label className="text-xs">ຊື່ແພັກເກັດ (ເຊັ່ນ 100 ເພັດ)</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" /></div>
+          <div><Label className="text-xs">ລິ້ງຮູບພາບ (ຮູບນ້ອຍ)</Label><Input value={img} onChange={(e) => setImg(e.target.value)} placeholder="https://..." className="mt-1" /></div>
+          <div><Label className="text-xs">ລາຍລະອຽດ</Label><Textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} className="mt-1" /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label className="text-xs">ລາຄາເຕັມ</Label><Input type="number" value={orig} onChange={(e) => setOrig(e.target.value)} className="mt-1" /></div>
+            <div><Label className="text-xs">ລາຄາຂາຍ (ກີບ)</Label><Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1" /></div>
+          </div>
+          {off > 0 && <p className="text-xs text-destructive">ຈະສະແດງປ້າຍ: ລົດ {off}%</p>}
+          <button type="button" onClick={() => setBest(!best)}
+            className={`w-full rounded-xl border p-2 text-sm ${best ? "border-accent bg-accent/15" : "border-border/60 bg-surface"}`}>
+            ★ ຂາຍດີທີ່ສຸດ {best ? "(ເປີດ)" : "(ປິດ)"}
+          </button>
+          <div><Label className="text-xs">ລຳດັບ (ນ້ອຍ = ຢູ່ດ້ານໜ້າ)</Label><Input type="number" value={sort} onChange={(e) => setSort(e.target.value)} className="mt-1" /></div>
         </div>
         <DialogFooter>
           <Button className="w-full btn-neon" disabled={busy || !name.trim() || !price}
             onClick={async () => {
               setBusy(true);
               try {
-                await onSave({ id: pkg?.id, category_id: categoryId, name: name.trim(), price: parseInt(price, 10), sort_order: parseInt(sort || "0", 10), is_active: true });
+                await onSave({
+                  id: pkg?.id, category_id: categoryId, name: name.trim(), price: parseInt(price, 10),
+                  original_price: orig ? parseInt(orig, 10) : null,
+                  image_url: img.trim() || null, description: desc.trim() || null,
+                  is_best_seller: best, sort_order: parseInt(sort || "0", 10), is_active: true,
+                });
               } catch (e) { toast.error(e instanceof Error ? e.message : "ຜິດພາດ"); } finally { setBusy(false); }
             }}>
             ບັນທຶກ
