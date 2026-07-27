@@ -68,7 +68,7 @@ export function AdminCategories() {
             {c.image_url ? (
               <img src={c.image_url} alt={c.name} className="size-12 rounded-xl object-cover" />
             ) : (
-              <div className="size-12 rounded-xl bg-primary/20" />
+              <div className="size-12 rounded-xl bg-surface" />
             )}
             <div className="flex-1 min-w-0">
               <div className="font-semibold truncate">{c.name}</div>
