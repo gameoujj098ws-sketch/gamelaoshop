@@ -49,12 +49,8 @@ function CardsPage() {
           <div className="grid grid-cols-3 gap-3">
             {filtered.map((c) => (
               <div key={c.id} className="card-tile p-2">
-                <div className="aspect-square rounded-lg overflow-hidden bg-primary/10">
-                  {c.image_url ? (
-                    <img src={c.image_url} alt={c.name} className="size-full object-cover" />
-                  ) : (
-                    <div className="size-full grid place-items-center"><CreditCard className="size-6 text-primary/70" /></div>
-                  )}
+                <div className="aspect-square rounded-lg overflow-hidden bg-surface">
+                  {c.image_url && <img src={c.image_url} alt={c.name} className="size-full object-cover" />}
                 </div>
                 <div className="text-[11px] text-center font-medium mt-2 truncate">{c.name}</div>
               </div>
