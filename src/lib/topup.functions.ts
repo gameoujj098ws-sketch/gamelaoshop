@@ -248,6 +248,13 @@ export const submitSlip = createServerFn({ method: "POST" })
           verified_ref: verdict?.reference ?? null,
         })
         .eq("id", reqId);
+      const { notifyDiscord } = await import("./discord.server");
+      await notifyDiscord("❌ ເຕີມເງິນບໍ່ສຳເລັດ", [
+        `**ຈຳນວນທີ່ສ້າງ:** ${reqAmount.toLocaleString()} ₭`,
+        `**ເຫດຜົນ (internal):** ${reasonCode}`,
+        `**Request ID:** ${reqId}`,
+      ], 0xef4444);
+
     }
 
     if (!verdict) {
