@@ -42,6 +42,25 @@ function StepBadge({ n }: { n: number }) {
   );
 }
 
+const DRAFT_TTL = 15 * 60 * 1000;
+const draftKey = (id: string) => `game-draft:${id}`;
+
+function loadDraft(id: string): { sel: string | null; values: Record<string, string> } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(draftKey(id));
+    if (!raw) return null;
+    const d = JSON.parse(raw) as { sel: string | null; values: Record<string, string>; ts: number };
+    if (!d.ts || Date.now() - d.ts > DRAFT_TTL) {
+      window.localStorage.removeItem(draftKey(id));
+      return null;
+    }
+    return { sel: d.sel ?? null, values: d.values ?? {} };
+  } catch {
+    return null;
+  }
+}
+
 function GamePage() {
   const { id } = useParams({ from: "/game/$id" });
   const navigate = useNavigate();
