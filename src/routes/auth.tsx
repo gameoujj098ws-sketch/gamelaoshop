@@ -133,7 +133,12 @@ function AuthPage() {
                 <Button type="submit" disabled={busy} className="w-full btn-neon">
                   {busy ? "ກຳລັງດຳເນີນການ..." : "ເຂົ້າສູ່ລະບົບ"}
                 </Button>
+                <button type="button" onClick={() => setForgotOpen(true)}
+                  className="w-full text-center text-xs text-primary underline underline-offset-4 cursor-pointer">
+                  ລືມລະຫັດຜ່ານ?
+                </button>
               </form>
+
             </TabsContent>
 
             <TabsContent value="signup">
