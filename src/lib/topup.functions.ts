@@ -363,5 +363,14 @@ export const submitSlip = createServerFn({ method: "POST" })
       await supabaseAdmin.from("notifications").insert(rows);
     }
 
+    const { notifyDiscord } = await import("./discord.server");
+    await notifyDiscord("💰 ເຕີມເງິນສຳເລັດ", [
+      `**ຈຳນວນ:** ${reqAmount.toLocaleString()} ₭`,
+      `**ຊື່ຜູ້ໂອນ/ຜູ້ຮັບ:** ${verdict.receiver_name ?? "-"}`,
+      `**ເລກອ້າງອີງ:** ${verdict.reference}`,
+      `**ຍອດຄົງເຫຼືອໃໝ່:** ${newBalance.toLocaleString()} ₭`,
+    ], 0x22c55e);
+
     return { ok: true, balance: newBalance };
+
   });
