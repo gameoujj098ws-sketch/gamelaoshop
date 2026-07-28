@@ -167,6 +167,23 @@ function AuthPage() {
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="bg-surface-2 border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle>ລືມລະຫັດຜ່ານ</DialogTitle>
+            <DialogDescription>ໃສ່ອີເມວຂອງທ່ານ ພວກເຮົາຈະສົ່ງລິ້ງປ່ຽນລະຫັດຜ່ານໄປໃຫ້</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
+              placeholder="you@email.com" autoComplete="email" />
+            <Button className="w-full btn-neon" disabled={busy} onClick={handleForgot}>
+              {busy ? "ກຳລັງສົ່ງ..." : "ສົ່ງລິ້ງປ່ຽນລະຫັດຜ່ານ"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
