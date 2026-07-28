@@ -40,6 +40,22 @@ function AuthPage() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  async function handleForgot() {
+    const email = forgotEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("ອີເມວບໍ່ຖືກຕ້ອງ"); return; }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("ສົ່ງລິ້ງປ່ຽນລະຫັດຜ່ານໄປອີເມວແລ້ວ ກະລຸນາກວດກ່ອງຂໍ້ຄວາມ");
+    setForgotOpen(false);
+  }
+
 
   if (!loading && session) return <Navigate to="/" replace />;
 
