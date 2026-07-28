@@ -74,5 +74,15 @@ export const placeOrder = createServerFn({ method: "POST" })
       note: `ສັ່ງຊື້ ${pkg.name}`,
     });
 
+    const { notifyDiscord } = await import("./discord.server");
+    await notifyDiscord("🎮 ອໍເດີໃໝ່ (New order)", [
+      `**ເກມ:** ${cat?.name ?? "-"}`,
+      `**ແພັກເກັດ:** ${pkg.name}`,
+      `**ລາຄາ:** ${pkg.price.toLocaleString()} ₭`,
+      ...Object.entries(data.inputs).map(([k, v]) => `**${k}:** ${v}`),
+      `**Order ID:** ${order.id}`,
+    ]);
+
     return { ok: true, order_id: order.id, balance: newBalance };
   });
+
