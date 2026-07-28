@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Gamepad2 } from "lucide-react";
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -38,6 +40,22 @@ function AuthPage() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  async function handleForgot() {
+    const email = forgotEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("ອີເມວບໍ່ຖືກຕ້ອງ"); return; }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("ສົ່ງລິ້ງປ່ຽນລະຫັດຜ່ານໄປອີເມວແລ້ວ ກະລຸນາກວດກ່ອງຂໍ້ຄວາມ");
+    setForgotOpen(false);
+  }
+
 
   if (!loading && session) return <Navigate to="/" replace />;
 
@@ -115,7 +133,12 @@ function AuthPage() {
                 <Button type="submit" disabled={busy} className="w-full btn-neon">
                   {busy ? "ກຳລັງດຳເນີນການ..." : "ເຂົ້າສູ່ລະບົບ"}
                 </Button>
+                <button type="button" onClick={() => setForgotOpen(true)}
+                  className="w-full text-center text-xs text-primary underline underline-offset-4 cursor-pointer">
+                  ລືມລະຫັດຜ່ານ?
+                </button>
               </form>
+
             </TabsContent>
 
             <TabsContent value="signup">
@@ -144,6 +167,23 @@ function AuthPage() {
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="bg-surface-2 border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle>ລືມລະຫັດຜ່ານ</DialogTitle>
+            <DialogDescription>ໃສ່ອີເມວຂອງທ່ານ ພວກເຮົາຈະສົ່ງລິ້ງປ່ຽນລະຫັດຜ່ານໄປໃຫ້</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
+              placeholder="you@email.com" autoComplete="email" />
+            <Button className="w-full btn-neon" disabled={busy} onClick={handleForgot}>
+              {busy ? "ກຳລັງສົ່ງ..." : "ສົ່ງລິ້ງປ່ຽນລະຫັດຜ່ານ"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
