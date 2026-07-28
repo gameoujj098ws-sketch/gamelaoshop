@@ -272,9 +272,20 @@ function GamePage() {
               <div className="text-xl font-bold">{selected ? 1 : 0}</div>
             </div>
           </div>
-          <Button onClick={confirm} disabled={busy || !selected} className="w-full btn-neon">
-            {busy ? "ກຳລັງດຳເນີນການ..." : "ຢືນຢັນ"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={clearDraft}
+              disabled={busy || (!sel && Object.values(values).every((v) => !v?.trim()))}
+              className="flex-1"
+            >
+              ຍົກເລີກ
+            </Button>
+            <Button onClick={confirm} disabled={busy || !selected} className="flex-[2] btn-neon">
+              {busy ? "ກຳລັງດຳເນີນການ..." : "ຢືນຢັນ"}
+            </Button>
+          </div>
         </div>
       </div>
     </AppShell>
