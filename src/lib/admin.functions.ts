@@ -291,8 +291,22 @@ export const adminDecideOrder = createServerFn({ method: "POST" })
           : `${order.category_name} — ${order.package_name} ຖືກປະຕິເສດ, ເງິນຄືນເຂົ້າກະເປົາແລ້ວ`),
     });
 
+    const { notifyDiscord } = await import("./discord.server");
+    await notifyDiscord(
+      data.action === "approve" ? "✅ ອໍເດີສຳເລັດ" : "❌ ອໍເດີຖືກປະຕິເສດ (ຄືນເງິນແລ້ວ)",
+      [
+        `**ເກມ:** ${order.category_name}`,
+        `**ແພັກເກັດ:** ${order.package_name}`,
+        `**ລາຄາ:** ${Number(order.price).toLocaleString()} ₭`,
+        data.message ? `**ຂໍ້ຄວາມ:** ${data.message}` : "",
+        `**Order ID:** ${order.id}`,
+      ],
+      data.action === "approve" ? 0x22c55e : 0xef4444,
+    );
+
     return { ok: true };
   });
+
 
 export const adminSendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
