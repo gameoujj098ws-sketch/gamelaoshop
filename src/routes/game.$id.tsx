@@ -75,7 +75,12 @@ function GamePage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
+  const [restored, setRestored] = useState(false);
+
   useEffect(() => {
+    setRestored(false);
+    setSel(null);
+    setValues({});
     (async () => {
       setLoading(true);
       const [{ data: c }, { data: f }, { data: p }] = await Promise.all([
@@ -83,14 +88,38 @@ function GamePage() {
         supabase.from("category_input_fields").select("*").eq("category_id", id).order("sort_order"),
         supabase.from("packages").select("*").eq("category_id", id).eq("is_active", true).order("sort_order"),
       ]);
+      const list = (p ?? []) as Pkg[];
       setCat((c ?? null) as Cat | null);
       setFields((f ?? []) as Field[]);
-      setPkgs((p ?? []) as Pkg[]);
+      setPkgs(list);
+      const draft = loadDraft(id);
+      if (draft) {
+        setValues(draft.values);
+        if (draft.sel && list.some((x) => x.id === draft.sel)) setSel(draft.sel);
+      }
+      setRestored(true);
       setLoading(false);
     })();
   }, [id]);
 
+  // persist draft (expires after 15 minutes)
+  useEffect(() => {
+    if (!restored || typeof window === "undefined") return;
+    const empty = !sel && Object.values(values).every((v) => !v?.trim());
+    if (empty) {
+      window.localStorage.removeItem(draftKey(id));
+      return;
+    }
+    window.localStorage.setItem(draftKey(id), JSON.stringify({ sel, values, ts: Date.now() }));
+  }, [id, sel, values, restored]);
+
   const selected = pkgs.find((p) => p.id === sel) ?? null;
+
+  function clearDraft() {
+    if (typeof window !== "undefined") window.localStorage.removeItem(draftKey(id));
+    setSel(null);
+    setValues({});
+  }
 
   async function confirm() {
     if (!user) { navigate({ to: "/auth" }); return; }
@@ -104,6 +133,7 @@ function GamePage() {
       for (const f of fields) inputs[f.label] = values[f.id];
       const res = await place({ data: { category_id: id, package_id: selected.id, inputs } });
       if (res.ok) {
+        clearDraft();
         toast.success("ສັ່ງຊື້ສຳເລັດ — ກຳລັງລໍຖ້າແອດມິນອະນຸມັດ");
         navigate({ to: "/history" });
       }
