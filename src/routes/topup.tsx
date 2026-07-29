@@ -114,10 +114,12 @@ function TopupFlow() {
     }
   }
 
-  async function handleCancel() {
-    if (request) await cancel({ data: { id: request.id } });
+  async function handleCancel(next: Step = "choose") {
+    if (request) {
+      try { await cancel({ data: { id: request.id } }); } catch { /* ignore */ }
+    }
     setRequest(null);
-    setStep("choose");
+    setStep(next);
   }
 
   if (restoring) {
@@ -132,11 +134,12 @@ function TopupFlow() {
     return (
       <QrStep
         request={request}
-        onExpire={handleCancel}
-        onDone={handleCancel}
+        onExpire={() => handleCancel("amount")}
+        onDone={() => handleCancel("amount")}
       />
     );
   }
+
 
   if (step === "amount") {
     return (
