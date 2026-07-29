@@ -333,7 +333,6 @@ export const submitSlip = createServerFn({ method: "POST" })
         verified_at: new Date().toISOString(),
         verified_amount: verdict.amount,
         verified_name: verdict.receiver_name,
-        verified_ref: verdict.reference,
         verify_reason: "OK",
       })
       .eq("id", req.id);
@@ -344,7 +343,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       balance_after: newBalance,
       kind: "topup_credit",
       reference_id: req.id,
-      note: `ເຕີມເງິນຜ່ານ QR (${verdict.reference})`,
+      note: "ເຕີມເງິນຜ່ານ QR",
     });
 
     // Notify admins
@@ -356,7 +355,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       const rows = admins.map((a) => ({
         user_id: a.user_id,
         title: "ມີການເຕີມເງິນສຳເລັດ",
-        body: `ຜູ້ໃຊ້ເຕີມ ${reqAmount.toLocaleString()} ₭ (${verdict.reference})`,
+        body: `ຜູ້ໃຊ້ເຕີມ ${reqAmount.toLocaleString()} ₭`,
       }));
       await supabaseAdmin.from("notifications").insert(rows);
     }
@@ -365,9 +364,9 @@ export const submitSlip = createServerFn({ method: "POST" })
     await notifyDiscord("💰 ເຕີມເງິນສຳເລັດ", [
       `**ຈຳນວນ:** ${reqAmount.toLocaleString()} ₭`,
       `**ຊື່ຜູ້ໂອນ/ຜູ້ຮັບ:** ${verdict.receiver_name ?? "-"}`,
-      `**ເລກອ້າງອີງ:** ${verdict.reference}`,
       `**ຍອດຄົງເຫຼືອໃໝ່:** ${newBalance.toLocaleString()} ₭`,
     ], 0x22c55e);
+
 
     return { ok: true, balance: newBalance };
 
