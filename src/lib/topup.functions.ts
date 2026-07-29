@@ -245,7 +245,7 @@ export const submitSlip = createServerFn({ method: "POST" })
           verify_reason: reasonCode,
           verified_amount: verdict?.amount ?? null,
           verified_name: verdict?.receiver_name ?? null,
-          verified_ref: verdict?.reference ?? null,
+          })
         })
         .eq("id", reqId);
       const { notifyDiscord } = await import("./discord.server");
