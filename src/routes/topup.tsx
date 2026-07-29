@@ -415,7 +415,7 @@ function ResultPopup({ ok, message, onClose }: { ok: boolean; message: string; o
         ) : (
           <XCircle className="size-16 text-destructive mx-auto" />
         )}
-        <div className="font-bold text-base">{ok ? "ສຳເລັດ" : "ບໍ່ສຳເລັດ"}</div>
+        <div className="font-bold text-base">{ok ? "ສຳເລັດ" : "ສະລິບບໍ່ຖືກຕ້ອງ"}</div>
         <div className="text-sm text-muted-foreground">{message}</div>
         <Button onClick={onClose} className="w-full btn-neon">ຕົກລົງ</Button>
       </div>
