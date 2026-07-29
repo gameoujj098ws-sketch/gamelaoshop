@@ -12,6 +12,8 @@ import QRCode from "qrcode";
 import { CheckCircle2, XCircle, Upload, Copy, QrCode as QrIcon, Ticket, Loader2, ArrowLeft, Wallet } from "lucide-react";
 import { formatKip } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/topup")({
   head: () => ({
