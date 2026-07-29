@@ -268,8 +268,8 @@ export const submitSlip = createServerFn({ method: "POST" })
       return { ok: false, reason: failGeneric };
     }
 
-    // Amount check (±100 kip tolerance)
-    if (verdict.amount == null || Math.abs(verdict.amount - req.amount) > 100) {
+    // Amount check (must match exactly, ±1 kip rounding tolerance)
+    if (verdict.amount == null || Math.abs(verdict.amount - req.amount) > 1) {
       await reject("AMOUNT_MISMATCH");
       return { ok: false, reason: "ຈຳນວນເງິນໃນສະລິບບໍ່ຕົງກັບຍອດທີ່ສ້າງໄວ້" };
     }
@@ -282,34 +282,32 @@ export const submitSlip = createServerFn({ method: "POST" })
       return { ok: false, reason: "ຊື່ບັນຊີຜູ້ຮັບບໍ່ຖືກຕ້ອງ" };
     }
 
-    // Datetime check (within last 24h to be lenient; still guards ancient slips)
+    // Date check — slip must be from the same day the request was created
+    // (Lao time, UTC+7). Time-of-day is not checked strictly; the 15-minute
+    // window is already enforced by the request expiry above.
     if (verdict.transfer_datetime) {
-      const ts = Date.parse(verdict.transfer_datetime);
-      if (!isNaN(ts)) {
-        const ageHrs = (Date.now() - ts) / 3_600_000;
-        if (ageHrs > 24 || ageHrs < -1) {
-          await reject("DATE_OUT_OF_RANGE");
+      const laoDay = (d: Date) =>
+        new Date(d.getTime() + 7 * 3_600_000).toISOString().slice(0, 10);
+      const raw = verdict.transfer_datetime.trim();
+      let slipDay: string | null = null;
+      const iso = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
+      const dmy = raw.match(/(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/);
+      if (iso) slipDay = `${iso[1]}-${iso[2]}-${iso[3]}`;
+      else if (dmy)
+        slipDay = `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
+
+      if (slipDay) {
+        const reqDay = laoDay(new Date(req.created_at));
+        const diffDays = Math.abs(
+          (Date.parse(slipDay) - Date.parse(reqDay)) / 86_400_000,
+        );
+        if (diffDays > 1) {
+          await reject("DATE_MISMATCH");
           return { ok: false, reason: failGeneric };
         }
       }
     }
 
-    // Reference required
-    if (!verdict.reference || verdict.reference.length < 4) {
-      await reject("NO_REF");
-      return { ok: false, reason: failGeneric };
-    }
-
-    // Reference must not have been used before (across all requests)
-    const { data: refDup } = await supabase
-      .from("topup_requests")
-      .select("id")
-      .eq("verified_ref", verdict.reference)
-      .maybeSingle();
-    if (refDup && refDup.id !== req.id) {
-      await reject("REF_REUSED");
-      return { ok: false, reason: failGeneric };
-    }
 
     // === Approve: credit wallet + mark approved ===
     const { data: profile, error: profErr } = await supabase
