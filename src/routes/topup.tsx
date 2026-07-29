@@ -349,7 +349,9 @@ function QrStep({
       </div>
 
       <div className="card-tile p-5 text-center space-y-3">
-        {qrDataUrl ? (
+        {bankQr ? (
+          <img src={bankQr} alt="QR" className="mx-auto rounded-xl bg-white p-2 size-64 object-contain" />
+        ) : qrDataUrl ? (
           <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl bg-white p-2 size-64 object-contain" />
         ) : (
           <div className="size-64 mx-auto rounded-xl bg-surface grid place-items-center">
@@ -367,28 +369,23 @@ function QrStep({
           </button>
         </div>
         <div className="text-2xl font-bold text-success">{formatKip(request.amount)} ₭</div>
-        {request.reference_code && (
-          <div className="text-xs text-muted-foreground">
-            ລະຫັດອ້າງອີງ: <span className="font-mono">{request.reference_code}</span>
-          </div>
-        )}
       </div>
 
       <div className="card-tile p-5">
         <h3 className="font-bold text-sm mb-2">ແນບຮູບສະລິບການໂອນ</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          ຫຼັງຈາກໂອນເງິນສຳເລັດ ໃຫ້ແນບຮູບສະລິບ ລະບົບຈະກວດອັດຕະໂນມັດ
+          ຫຼັງຈາກໂອນເງິນສຳເລັດ ໃຫ້ແນບຮູບສະລິບ 1 ຮູບ ລະບົບຈະກວດອັດຕະໂນມັດ
         </p>
         <input
           ref={fileRef}
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }}
         />
         <Button
           onClick={() => fileRef.current?.click()}
-          disabled={busy || secondsLeft <= 0}
+          disabled={busy || submitted || secondsLeft <= 0}
           className="w-full btn-neon"
         >
           {busy ? (
@@ -403,7 +400,8 @@ function QrStep({
         ຍົກເລີກ
       </Button>
 
-      {result && <ResultPopup ok={result.ok} message={result.message} onClose={() => (result.ok ? onDone() : setResult(null))} />}
+      {result && <ResultPopup ok={result.ok} message={result.message} onClose={onDone} />}
+
     </div>
   );
 }
