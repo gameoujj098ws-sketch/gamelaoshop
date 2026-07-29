@@ -251,20 +251,35 @@ function QrStep({
   onDone: () => void;
 }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [bankQr, setBankQr] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(() =>
     Math.max(0, Math.floor((new Date(request.expires_at).getTime() - Date.now()) / 1000)),
   );
   const [busy, setBusy] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   const submit = useServerFn(submitSlip);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Build QR payload — a plain text description customer/bank apps can read.
+  // Prefer the real bank QR image configured by the admin.
+  useEffect(() => {
+    supabase
+      .from("site_settings")
+      .select("bank_qr_image_url")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        const url = data?.bank_qr_image_url?.trim();
+        if (url) setBankQr(url);
+      });
+  }, []);
+
+  // Fallback QR payload — a plain text description customer/bank apps can read.
   const qrPayload = useMemo(
-    () =>
-      `Gamelao Topup\nBank: ${RECEIVER_NAME}\nAmount: ${request.amount} LAK\nRef: ${request.reference_code ?? request.id.slice(0, 8)}`,
+    () => `Gamelao Topup\nBank: ${RECEIVER_NAME}\nAmount: ${request.amount} LAK`,
     [request],
   );
+
 
   useEffect(() => {
     QRCode.toDataURL(qrPayload, { width: 320, margin: 1, color: { dark: "#0a0a12", light: "#ffffff" } }).then(setQrDataUrl);
