@@ -232,7 +232,7 @@ function HistoryPage() {
                   <Row k="ຢືນຢັນເມື່ອ" v={formatDateTime(detailTopup.verified_at)} />
                   {detailTopup.verified_amount != null && <Row k="ຈຳນວນໃນສະລິບ" v={`${formatKip(detailTopup.verified_amount)} ₭`} />}
                   {detailTopup.verified_name && <Row k="ຊື່ຜູ້ຮັບ" v={detailTopup.verified_name} />}
-                  {detailTopup.verified_ref && <Row k="ເລກອ້າງອີງທະນາຄານ" v={detailTopup.verified_ref} />}
+                  
                   <p className="text-xs text-success pt-1">ລະບົບກວດສອບສຳເລັດ ເງິນເຂົ້າກະເປົາແລ້ວ</p>
                 </>
               )}

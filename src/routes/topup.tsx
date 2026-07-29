@@ -12,6 +12,8 @@ import QRCode from "qrcode";
 import { CheckCircle2, XCircle, Upload, Copy, QrCode as QrIcon, Ticket, Loader2, ArrowLeft, Wallet } from "lucide-react";
 import { formatKip } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/topup")({
   head: () => ({
@@ -114,10 +116,12 @@ function TopupFlow() {
     }
   }
 
-  async function handleCancel() {
-    if (request) await cancel({ data: { id: request.id } });
+  async function handleCancel(next: Step = "choose") {
+    if (request) {
+      try { await cancel({ data: { id: request.id } }); } catch { /* ignore */ }
+    }
     setRequest(null);
-    setStep("choose");
+    setStep(next);
   }
 
   if (restoring) {
@@ -132,11 +136,12 @@ function TopupFlow() {
     return (
       <QrStep
         request={request}
-        onExpire={handleCancel}
-        onDone={handleCancel}
+        onExpire={() => handleCancel("amount")}
+        onDone={() => handleCancel("amount")}
       />
     );
   }
+
 
   if (step === "amount") {
     return (
@@ -248,20 +253,35 @@ function QrStep({
   onDone: () => void;
 }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [bankQr, setBankQr] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(() =>
     Math.max(0, Math.floor((new Date(request.expires_at).getTime() - Date.now()) / 1000)),
   );
   const [busy, setBusy] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   const submit = useServerFn(submitSlip);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Build QR payload — a plain text description customer/bank apps can read.
+  // Prefer the real bank QR image configured by the admin.
+  useEffect(() => {
+    supabase
+      .from("site_settings")
+      .select("bank_qr_image_url")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        const url = data?.bank_qr_image_url?.trim();
+        if (url) setBankQr(url);
+      });
+  }, []);
+
+  // Fallback QR payload — a plain text description customer/bank apps can read.
   const qrPayload = useMemo(
-    () =>
-      `Gamelao Topup\nBank: ${RECEIVER_NAME}\nAmount: ${request.amount} LAK\nRef: ${request.reference_code ?? request.id.slice(0, 8)}`,
+    () => `Gamelao Topup\nBank: ${RECEIVER_NAME}\nAmount: ${request.amount} LAK`,
     [request],
   );
+
 
   useEffect(() => {
     QRCode.toDataURL(qrPayload, { width: 320, margin: 1, color: { dark: "#0a0a12", light: "#ffffff" } }).then(setQrDataUrl);
@@ -279,17 +299,15 @@ function QrStep({
     return () => clearInterval(t);
   }, [request.expires_at, onExpire]);
 
-  // Auto-close result popup
+  // Auto-close result popup — both outcomes return to the amount screen.
   useEffect(() => {
     if (!result) return;
-    const t = setTimeout(() => {
-      if (result.ok) onDone();
-      else setResult(null);
-    }, 5000);
+    const t = setTimeout(onDone, 5000);
     return () => clearTimeout(t);
   }, [result, onDone]);
 
   async function onFile(file: File) {
+    if (submitted || busy) return;
     if (!file.type.startsWith("image/")) {
       toast.error("ກະລຸນາເລືອກຮູບພາບ");
       return;
@@ -298,6 +316,7 @@ function QrStep({
       toast.error("ຮູບໃຫຍ່ເກີນ 6MB");
       return;
     }
+    setSubmitted(true);
     setBusy(true);
     try {
       const b64 = await fileToBase64(file);
@@ -307,14 +326,15 @@ function QrStep({
       if (res.ok) {
         setResult({ ok: true, message: "ເຕີມເງິນສຳເລັດ! ຍອດເງິນເຂົ້າແລ້ວ" });
       } else {
-        setResult({ ok: false, message: res.reason ?? "ບໍ່ສາມາດຢືນຢັນສະລິບໄດ້" });
+        setResult({ ok: false, message: res.reason ?? "ສະລິບບໍ່ຖືກຕ້ອງ" });
       }
     } catch (e) {
-      setResult({ ok: false, message: e instanceof Error ? e.message : "ເກີດຂໍ້ຜິດພາດ" });
+      setResult({ ok: false, message: e instanceof Error ? e.message : "ສະລິບບໍ່ຖືກຕ້ອງ" });
     } finally {
       setBusy(false);
     }
   }
+
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
   const ss = String(secondsLeft % 60).padStart(2, "0");
@@ -329,7 +349,9 @@ function QrStep({
       </div>
 
       <div className="card-tile p-5 text-center space-y-3">
-        {qrDataUrl ? (
+        {bankQr ? (
+          <img src={bankQr} alt="QR" className="mx-auto rounded-xl bg-white p-2 size-64 object-contain" />
+        ) : qrDataUrl ? (
           <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl bg-white p-2 size-64 object-contain" />
         ) : (
           <div className="size-64 mx-auto rounded-xl bg-surface grid place-items-center">
@@ -347,28 +369,23 @@ function QrStep({
           </button>
         </div>
         <div className="text-2xl font-bold text-success">{formatKip(request.amount)} ₭</div>
-        {request.reference_code && (
-          <div className="text-xs text-muted-foreground">
-            ລະຫັດອ້າງອີງ: <span className="font-mono">{request.reference_code}</span>
-          </div>
-        )}
       </div>
 
       <div className="card-tile p-5">
         <h3 className="font-bold text-sm mb-2">ແນບຮູບສະລິບການໂອນ</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          ຫຼັງຈາກໂອນເງິນສຳເລັດ ໃຫ້ແນບຮູບສະລິບ ລະບົບຈະກວດອັດຕະໂນມັດ
+          ຫຼັງຈາກໂອນເງິນສຳເລັດ ໃຫ້ແນບຮູບສະລິບ 1 ຮູບ ລະບົບຈະກວດອັດຕະໂນມັດ
         </p>
         <input
           ref={fileRef}
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }}
         />
         <Button
           onClick={() => fileRef.current?.click()}
-          disabled={busy || secondsLeft <= 0}
+          disabled={busy || submitted || secondsLeft <= 0}
           className="w-full btn-neon"
         >
           {busy ? (
@@ -383,7 +400,8 @@ function QrStep({
         ຍົກເລີກ
       </Button>
 
-      {result && <ResultPopup ok={result.ok} message={result.message} onClose={() => (result.ok ? onDone() : setResult(null))} />}
+      {result && <ResultPopup ok={result.ok} message={result.message} onClose={onDone} />}
+
     </div>
   );
 }
@@ -397,7 +415,7 @@ function ResultPopup({ ok, message, onClose }: { ok: boolean; message: string; o
         ) : (
           <XCircle className="size-16 text-destructive mx-auto" />
         )}
-        <div className="font-bold text-base">{ok ? "ສຳເລັດ" : "ບໍ່ສຳເລັດ"}</div>
+        <div className="font-bold text-base">{ok ? "ສຳເລັດ" : "ສະລິບບໍ່ຖືກຕ້ອງ"}</div>
         <div className="text-sm text-muted-foreground">{message}</div>
         <Button onClick={onClose} className="w-full btn-neon">ຕົກລົງ</Button>
       </div>
