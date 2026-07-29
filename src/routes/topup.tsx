@@ -299,17 +299,15 @@ function QrStep({
     return () => clearInterval(t);
   }, [request.expires_at, onExpire]);
 
-  // Auto-close result popup
+  // Auto-close result popup — both outcomes return to the amount screen.
   useEffect(() => {
     if (!result) return;
-    const t = setTimeout(() => {
-      if (result.ok) onDone();
-      else setResult(null);
-    }, 5000);
+    const t = setTimeout(onDone, 5000);
     return () => clearTimeout(t);
   }, [result, onDone]);
 
   async function onFile(file: File) {
+    if (submitted || busy) return;
     if (!file.type.startsWith("image/")) {
       toast.error("ກະລຸນາເລືອກຮູບພາບ");
       return;
@@ -318,6 +316,7 @@ function QrStep({
       toast.error("ຮູບໃຫຍ່ເກີນ 6MB");
       return;
     }
+    setSubmitted(true);
     setBusy(true);
     try {
       const b64 = await fileToBase64(file);
@@ -327,14 +326,15 @@ function QrStep({
       if (res.ok) {
         setResult({ ok: true, message: "ເຕີມເງິນສຳເລັດ! ຍອດເງິນເຂົ້າແລ້ວ" });
       } else {
-        setResult({ ok: false, message: res.reason ?? "ບໍ່ສາມາດຢືນຢັນສະລິບໄດ້" });
+        setResult({ ok: false, message: res.reason ?? "ສະລິບບໍ່ຖືກຕ້ອງ" });
       }
     } catch (e) {
-      setResult({ ok: false, message: e instanceof Error ? e.message : "ເກີດຂໍ້ຜິດພາດ" });
+      setResult({ ok: false, message: e instanceof Error ? e.message : "ສະລິບບໍ່ຖືກຕ້ອງ" });
     } finally {
       setBusy(false);
     }
   }
+
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
   const ss = String(secondsLeft % 60).padStart(2, "0");
