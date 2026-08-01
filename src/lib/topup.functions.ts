@@ -1,29 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { z } from "zod";
-
-const ACCOUNT_NAME_TOKENS = ["SOMYONE", "KHAMKHEUNG"];
-const EXPIRE_MINUTES = 15;
-
-function genRef() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let s = "GL";
-  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
-}
-
-async function sha256Hex(bytes: Uint8Array) {
-  const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+import {
+  createTopupInput,
+  recipientNameMatches,
+  sha256Hex,
+  slipTimeIsValid,
+  submitSlipInput,
+  TOPUP_EXPIRE_MINUTES,
+  topupIdInput,
+} from "./topup.server";
 
 // ---------- create ----------
 export const createTopupRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) =>
-    z.object({ amount: z.number().int().min(1000).max(10_000_000) }).parse(raw),
-  )
+  .inputValidator(createTopupInput)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -56,14 +46,17 @@ export const createTopupRequest = createServerFn({ method: "POST" })
         .eq("id", existing.id);
     }
 
-    const expiresAt = new Date(Date.now() + EXPIRE_MINUTES * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + TOPUP_EXPIRE_MINUTES * 60 * 1000).toISOString();
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let referenceCode = "GL";
+    for (let i = 0; i < 6; i++) referenceCode += chars[Math.floor(Math.random() * chars.length)];
     const { data: created, error } = await supabase
       .from("topup_requests")
       .insert({
         user_id: userId,
         amount: data.amount,
         status: "pending",
-        reference_code: genRef(),
+        reference_code: referenceCode,
         expires_at: expiresAt,
       })
       .select("*")
@@ -92,7 +85,7 @@ export const getActiveTopup = createServerFn({ method: "GET" })
 // ---------- cancel ----------
 export const cancelTopup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => z.object({ id: z.string().uuid() }).parse(raw))
+  .inputValidator(topupIdInput)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await supabase
@@ -104,16 +97,9 @@ export const cancelTopup = createServerFn({ method: "POST" })
   });
 
 // ---------- submit slip ----------
-const submitInput = z.object({
-  request_id: z.string().uuid(),
-  image_base64: z.string().min(100),
-  mime: z.string().regex(/^image\/(png|jpe?g|webp)$/),
-});
-
 type VerdictJson = {
   amount: number | null;
   receiver_name: string | null;
-  reference: string | null;
   transfer_datetime: string | null;
   looks_authentic: boolean;
   confidence: number;
@@ -121,7 +107,7 @@ type VerdictJson = {
 
 export const submitSlip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw: unknown) => submitInput.parse(raw))
+  .inputValidator(submitSlipInput)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -180,7 +166,7 @@ export const submitSlip = createServerFn({ method: "POST" })
           {
             role: "system",
             content:
-              "You are a bank transfer slip inspector. Extract fields precisely from the image. If the image is not a bank transfer slip, or looks edited/tampered/screenshot-of-a-screenshot, set looks_authentic=false. Return ONLY the tool call.",
+              "You are a strict bank transfer slip inspector. Extract the recipient name, exact transferred amount, and complete transfer date and time from visible text only. Never infer or invent a missing date or time. If any required field is unreadable, the image is not a bank transfer slip, or it appears edited/tampered/reused, set looks_authentic=false. Return ONLY the tool call.",
           },
           {
             role: "user",
@@ -202,12 +188,11 @@ export const submitSlip = createServerFn({ method: "POST" })
                 properties: {
                   amount: { type: ["number", "null"], description: "Transfer amount in KIP (LAK)." },
                   receiver_name: { type: ["string", "null"], description: "Receiver full name as printed." },
-                  reference: { type: ["string", "null"], description: "Transaction reference / ID." },
-                  transfer_datetime: { type: ["string", "null"], description: "ISO datetime of transfer." },
+                  transfer_datetime: { type: ["string", "null"], description: "Complete visible transfer date and time. Use ISO 8601 with the printed timezone when known; use Lao timezone +07:00 when no timezone is printed. Return null if either date or time is missing or unreadable." },
                   looks_authentic: { type: "boolean", description: "True if slip appears genuine/unedited." },
                   confidence: { type: "number", description: "0..1 confidence in extraction." },
                 },
-                required: ["amount", "receiver_name", "reference", "transfer_datetime", "looks_authentic", "confidence"],
+                required: ["amount", "receiver_name", "transfer_datetime", "looks_authentic", "confidence"],
               },
             },
           },
@@ -220,7 +205,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       const body = await aiRes.text();
       console.error("AI gateway error", aiRes.status, body);
       await supabase.from("topup_requests")
-        .update({ slip_url: objectPath, slip_hash: hash, verify_reason: "AI_ERROR" })
+        .update({ status: "rejected", slip_url: objectPath, slip_hash: hash, verify_reason: "AI_ERROR" })
         .eq("id", req.id);
       throw new Error("ບໍ່ສາມາດຢືນຢັນສະລິບໄດ້, ກະລຸນາລອງໃໝ່");
     }
@@ -274,38 +259,17 @@ export const submitSlip = createServerFn({ method: "POST" })
       return { ok: false, reason: "ຈຳນວນເງິນໃນສະລິບບໍ່ຕົງກັບຍອດທີ່ສ້າງໄວ້" };
     }
 
-    // Receiver name check (must contain both tokens, case-insensitive)
-    const nameUp = (verdict.receiver_name ?? "").toUpperCase().replace(/[^A-Z ]/g, "");
-    const nameOk = ACCOUNT_NAME_TOKENS.every((t) => nameUp.includes(t));
-    if (!nameOk) {
+    // Receiver name: SOMYONE KHAMKHEUNG is required; MR is optional.
+    if (!recipientNameMatches(verdict.receiver_name)) {
       await reject("NAME_MISMATCH");
       return { ok: false, reason: "ຊື່ບັນຊີຜູ້ຮັບບໍ່ຖືກຕ້ອງ" };
     }
 
-    // Date check — slip must be from the same day the request was created
-    // (Lao time, UTC+7). Time-of-day is not checked strictly; the 15-minute
-    // window is already enforced by the request expiry above.
-    if (verdict.transfer_datetime) {
-      const laoDay = (d: Date) =>
-        new Date(d.getTime() + 7 * 3_600_000).toISOString().slice(0, 10);
-      const raw = verdict.transfer_datetime.trim();
-      let slipDay: string | null = null;
-      const iso = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
-      const dmy = raw.match(/(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/);
-      if (iso) slipDay = `${iso[1]}-${iso[2]}-${iso[3]}`;
-      else if (dmy)
-        slipDay = `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
-
-      if (slipDay) {
-        const reqDay = laoDay(new Date(req.created_at));
-        const diffDays = Math.abs(
-          (Date.parse(slipDay) - Date.parse(reqDay)) / 86_400_000,
-        );
-        if (diffDays > 1) {
-          await reject("DATE_MISMATCH");
-          return { ok: false, reason: failGeneric };
-        }
-      }
+    // A visible date and time are mandatory: same Lao calendar day and within
+    // the 15-minute window beginning when this request was created.
+    if (!slipTimeIsValid(verdict.transfer_datetime, req.created_at)) {
+      await reject("DATETIME_MISMATCH");
+      return { ok: false, reason: failGeneric };
     }
 
 
