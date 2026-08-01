@@ -92,7 +92,8 @@ export const cancelTopup = createServerFn({ method: "POST" })
       .from("topup_requests")
       .update({ status: "canceled" })
       .eq("id", data.id)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .eq("status", "pending");
     return { ok: true };
   });
 
