@@ -408,7 +408,7 @@ function QrStep({
 
 function ResultPopup({ ok, message, onClose }: { ok: boolean; message: string; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/35 backdrop-blur-sm px-4">
       <div className="w-full max-w-xs card-tile p-6 text-center space-y-3">
         {ok ? (
           <CheckCircle2 className="size-16 text-success mx-auto" />

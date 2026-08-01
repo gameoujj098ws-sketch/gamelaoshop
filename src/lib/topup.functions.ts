@@ -130,8 +130,10 @@ export const submitSlip = createServerFn({ method: "POST" })
     if (bytes.byteLength > 6 * 1024 * 1024) throw new Error("ຮູບໃຫຍ່ເກີນ 6MB");
     const hash = await sha256Hex(bytes);
 
-    // Reject dup slip
-    const { data: dup } = await supabase
+    // Check duplicates with privileged access so the same slip cannot be reused
+    // from a different customer account hidden by row-level access rules.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: dup } = await supabaseAdmin
       .from("topup_requests")
       .select("id")
       .eq("slip_hash", hash)
@@ -144,7 +146,6 @@ export const submitSlip = createServerFn({ method: "POST" })
     }
 
     // Upload to storage
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const ext = data.mime.split("/")[1].replace("jpeg", "jpg");
     const objectPath = `${userId}/${req.id}-${Date.now()}.${ext}`;
     const { error: upErr } = await supabaseAdmin.storage
