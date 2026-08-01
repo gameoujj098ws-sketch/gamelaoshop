@@ -37,7 +37,7 @@ interface OrderRow {
   created_at: string; updated_at: string;
 }
 interface TopupRow {
-  id: string; amount: number; status: string; reference_code: string | null;
+  id: string; amount: number; status: string;
   verify_reason: string | null; verified_amount: number | null; verified_name: string | null;
   verified_ref: string | null; verified_at: string | null; created_at: string; expires_at: string;
 }
@@ -94,7 +94,7 @@ function HistoryPage() {
     (async () => {
       const [o, t, l] = await Promise.all([
         supabase.from("orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
-        supabase.from("topup_requests").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
+        supabase.from("topup_requests").select("*").eq("user_id", userId).in("status", ["approved", "rejected"]).not("slip_url", "is", null).order("created_at", { ascending: false }).limit(100),
         supabase.from("login_history").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
       ]);
       if (!alive) return;
@@ -225,7 +225,6 @@ function HistoryPage() {
               <div className="flex justify-end"><Badge status={detailTopup.status} /></div>
               <Row k="ຊ່ອງທາງ" v="QR Code (ໂອນຜ່ານທະນາຄານ)" />
               <Row k="ຈຳນວນທີ່ສ້າງ" v={`${formatKip(detailTopup.amount)} ₭`} />
-              {detailTopup.reference_code && <Row k="ລະຫັດອ້າງອີງ" v={detailTopup.reference_code} />}
               <Row k="ວັນທີສ້າງ" v={`${formatDateTime(detailTopup.created_at)} (${timeAgo(detailTopup.created_at)})`} />
               {detailTopup.status === "approved" && (
                 <>
@@ -238,9 +237,6 @@ function HistoryPage() {
               )}
               {detailTopup.status === "rejected" && (
                 <p className="text-xs text-destructive pt-1">ລະບົບກວດສອບບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່ ຫຼື ຕິດຕໍ່ແອດມິນ</p>
-              )}
-              {detailTopup.status === "pending" && (
-                <p className="text-xs text-muted-foreground pt-1">ລໍຖ້າແນບສະລິບ ຫຼື ກຳລັງກວດສອບ</p>
               )}
             </div>
           )}
