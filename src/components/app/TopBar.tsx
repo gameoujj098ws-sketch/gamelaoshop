@@ -72,7 +72,7 @@ export function TopBar() {
               </Link>
               <Link
                 to="/auth"
-                search={{ mode: "signup" } as never}
+                search={{ mode: "signup" }}
                 className="btn-neon px-3 py-1.5 text-xs font-bold"
               >
                 ສະໝັກສະມາຊິກ

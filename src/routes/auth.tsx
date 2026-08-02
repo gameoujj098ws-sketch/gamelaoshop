@@ -13,6 +13,9 @@ import { Gamepad2 } from "lucide-react";
 
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mode: search.mode === "signup" ? ("signup" as const) : ("login" as const),
+  }),
   head: () => ({
     meta: [
       { title: "ເຂົ້າສູ່ລະບົບ — Gamelao" },
@@ -37,6 +40,7 @@ const loginSchema = z.object({
 });
 
 function AuthPage() {
+  const { mode } = Route.useSearch();
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
@@ -114,7 +118,7 @@ function AuthPage() {
         </div>
 
         <div className="card-tile p-6">
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={mode} className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-secondary">
               <TabsTrigger value="login">ເຂົ້າສູ່ລະບົບ</TabsTrigger>
               <TabsTrigger value="signup">ສະໝັກສະມາຊິກ</TabsTrigger>
