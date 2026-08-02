@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Flame, CreditCard, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/app/AppShell";
-import { useAuth } from "@/lib/auth-context";
 
 interface Category {
   id: string;
@@ -34,7 +33,6 @@ function HomePage() {
   const [popular, setPopular] = useState<Category[]>([]);
   const [others, setOthers] = useState<Category[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
