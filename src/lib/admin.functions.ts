@@ -355,3 +355,165 @@ export const adminSaveSettings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------------- prepaid cards ----------------
+export const adminListCards = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await assertAdmin(context as any);
+    const [{ data: cards }, { data: pkgs }, { data: fields }] = await Promise.all([
+      db.from("prepaid_cards").select("*").order("sort_order"),
+      db.from("card_packages").select("*").order("sort_order"),
+      db.from("card_input_fields").select("*").order("sort_order"),
+    ]);
+    return { cards: cards ?? [], packages: pkgs ?? [], fields: fields ?? [] };
+  });
+
+export const adminSaveCard = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        name: z.string().min(1).max(80),
+        image_url: z.string().max(500).nullable().optional(),
+        sort_order: z.number().int().default(0),
+        is_active: z.boolean().default(true),
+      })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    const payload = {
+      name: data.name,
+      image_url: data.image_url || null,
+      sort_order: data.sort_order,
+      is_active: data.is_active,
+    };
+    const { error } = data.id
+      ? await db.from("prepaid_cards").update(payload).eq("id", data.id)
+      : await db.from("prepaid_cards").insert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminDeleteCard = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ id: z.string().uuid() }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    await db.from("card_input_fields").delete().eq("card_id", data.id);
+    await db.from("card_packages").delete().eq("card_id", data.id);
+    const { error } = await db.from("prepaid_cards").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminSaveCardPackage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        card_id: z.string().uuid(),
+        name: z.string().min(1).max(80),
+        price: z.number().int().min(0),
+        original_price: z.number().int().min(0).nullable().optional(),
+        image_url: z.string().max(500).nullable().optional(),
+        description: z.string().max(500).nullable().optional(),
+        stock: z.number().int().min(0).default(0),
+        is_best_seller: z.boolean().default(false),
+        sort_order: z.number().int().default(0),
+        is_active: z.boolean().default(true),
+      })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    const payload = {
+      card_id: data.card_id,
+      name: data.name,
+      price: data.price,
+      original_price: data.original_price ?? null,
+      image_url: data.image_url || null,
+      description: data.description || null,
+      stock: data.stock,
+      is_best_seller: data.is_best_seller,
+      sort_order: data.sort_order,
+      is_active: data.is_active,
+    };
+    const { error } = data.id
+      ? await db.from("card_packages").update(payload).eq("id", data.id)
+      : await db.from("card_packages").insert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Adds (or subtracts) stock for one card package. */
+export const adminAdjustCardStock = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z.object({ id: z.string().uuid(), delta: z.number().int() }).parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    const { data: row, error: readErr } = await db
+      .from("card_packages")
+      .select("stock")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!row) throw new Error("ບໍ່ພົບແພັກເກັດ");
+    const next = Math.max(0, Number(row.stock ?? 0) + data.delta);
+    const { error } = await db.from("card_packages").update({ stock: next }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, stock: next };
+  });
+
+export const adminDeleteCardPackage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ id: z.string().uuid() }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    const { error } = await db.from("card_packages").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminSaveCardField = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        card_id: z.string().uuid(),
+        label: z.string().min(1).max(80),
+        placeholder: z.string().max(120).nullable().optional(),
+        sort_order: z.number().int().default(0),
+      })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    const payload = {
+      card_id: data.card_id,
+      label: data.label,
+      placeholder: data.placeholder || null,
+      sort_order: data.sort_order,
+    };
+    const { error } = data.id
+      ? await db.from("card_input_fields").update(payload).eq("id", data.id)
+      : await db.from("card_input_fields").insert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminDeleteCardField = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ id: z.string().uuid() }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    const { error } = await db.from("card_input_fields").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
