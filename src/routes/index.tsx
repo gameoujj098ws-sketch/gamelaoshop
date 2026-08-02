@@ -51,10 +51,6 @@ function HomePage() {
   }, []);
 
   function openTopup(c: Category) {
-    if (!user) {
-      navigate({ to: "/auth" });
-      return;
-    }
     navigate({ to: "/game/$id", params: { id: c.id } });
   }
 
