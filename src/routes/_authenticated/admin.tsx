@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminCategories } from "@/components/admin/AdminCategories";
+import { AdminCards } from "@/components/admin/AdminCards";
 import { AdminOrders } from "@/components/admin/AdminOrders";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "ໜ້າແອດມິນ — Gamelao" },
-      { name: "description", content: "ຈັດການລະບົບ Gamelao: ສະຖິຕິ, ຜູ້ໃຊ້, ໝວດໝູ່ເກມ, ອໍເດີ ແລະ ຕັ້ງຄ່າ" },
+      { name: "description", content: "ຈັດການລະບົບ Gamelao: ສະຖິຕິ, ຜູ້ໃຊ້, ໝວດໝູ່ເກມ, ບັດເຕີມເງິນ, ອໍເດີ ແລະ ຕັ້ງຄ່າ" },
       { property: "og:title", content: "ໜ້າແອດມິນ — Gamelao" },
       { property: "og:description", content: "ຈັດການລະບົບ Gamelao" },
       { name: "robots", content: "noindex" },
@@ -25,9 +26,11 @@ const TABS = [
   { key: "dashboard", label: "ສະຖິຕິ" },
   { key: "users", label: "ຜູ້ໃຊ້" },
   { key: "categories", label: "ໝວດໝູ່" },
+  { key: "cards", label: "ບັດເຕີມເງິນ" },
   { key: "orders", label: "ອໍເດີ" },
   { key: "settings", label: "ຕັ້ງຄ່າ" },
 ] as const;
+
 
 function AdminPage() {
   const { isAdmin, loading } = useAuth();
@@ -60,6 +63,8 @@ function AdminPage() {
       {tab === "dashboard" && <AdminDashboard />}
       {tab === "users" && <AdminUsers />}
       {tab === "categories" && <AdminCategories />}
+      {tab === "cards" && <AdminCards />}
+
       {tab === "orders" && <AdminOrders />}
       {tab === "settings" && <AdminSettings />}
     </div>

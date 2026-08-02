@@ -14,6 +14,97 @@ export type Database = {
   }
   public: {
     Tables: {
+      card_input_fields: {
+        Row: {
+          card_id: string
+          created_at: string
+          id: string
+          label: string
+          placeholder: string | null
+          sort_order: number
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          id?: string
+          label: string
+          placeholder?: string | null
+          sort_order?: number
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          placeholder?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_input_fields_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "prepaid_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_packages: {
+        Row: {
+          card_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_best_seller: boolean
+          name: string
+          original_price: number | null
+          price: number
+          sort_order: number
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_best_seller?: boolean
+          name: string
+          original_price?: number | null
+          price?: number
+          sort_order?: number
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_best_seller?: boolean
+          name?: string
+          original_price?: number | null
+          price?: number
+          sort_order?: number
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_packages_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "prepaid_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
