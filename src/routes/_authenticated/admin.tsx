@@ -63,6 +63,8 @@ function AdminPage() {
       {tab === "dashboard" && <AdminDashboard />}
       {tab === "users" && <AdminUsers />}
       {tab === "categories" && <AdminCategories />}
+      {tab === "cards" && <AdminCards />}
+
       {tab === "orders" && <AdminOrders />}
       {tab === "settings" && <AdminSettings />}
     </div>
