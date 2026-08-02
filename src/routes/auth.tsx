@@ -5,12 +5,11 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Gamepad2 } from "lucide-react";
-
+import { cn } from "@/lib/utils";
+import { Gamepad2, LogIn, UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { mode?: "login" | "signup" } => ({
@@ -39,10 +38,17 @@ const loginSchema = z.object({
   password: z.string().min(1, "ກະລຸນາໃສ່ລະຫັດ"),
 });
 
+const fieldClass = "mt-1 h-12 rounded-2xl border-primary/25 bg-secondary/40 text-base";
+
+function Req() {
+  return <span className="text-destructive"> *</span>;
+}
+
 function AuthPage() {
   const { mode } = Route.useSearch();
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const [tab, setTab] = useState<"login" | "signup">(mode ?? "login");
   const [busy, setBusy] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
@@ -59,7 +65,6 @@ function AuthPage() {
     toast.success("ສົ່ງລິ້ງປ່ຽນລະຫັດຜ່ານໄປອີເມວແລ້ວ ກະລຸນາກວດກ່ອງຂໍ້ຄວາມ");
     setForgotOpen(false);
   }
-
 
   if (!loading && session) return <Navigate to="/" replace />;
 
@@ -98,7 +103,6 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    // log login history (fire and forget)
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) supabase.from("login_history").insert({ user_id: data.user.id, user_agent: navigator.userAgent });
     });
@@ -107,68 +111,114 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex flex-col items-center gap-2">
-          <div className="rounded-2xl p-3 bg-gradient-to-br from-primary to-accent neon-glow">
-            <Gamepad2 className="size-8 text-white" />
+    <div className="min-h-screen px-3 py-4">
+      <div className="mx-auto w-full max-w-md space-y-3">
+        {/* header bar: logo + switch pills */}
+        <div className="flex items-center gap-3 rounded-3xl bg-secondary/50 p-3 shadow-sm">
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-accent">
+            <Gamepad2 className="size-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Gamelao</h1>
-          <p className="text-sm text-muted-foreground">ເຕີມເກມອອນລາຍ — ໄວ, ປອດໄພ</p>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setTab("login")}
+              className={cn(
+                "rounded-2xl border-2 px-4 py-2.5 text-sm font-bold cursor-pointer",
+                tab === "login" ? "border-primary text-primary" : "border-transparent text-muted-foreground",
+              )}
+            >
+              ເຂົ້າສູ່ລະບົບ
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("signup")}
+              className={cn(
+                "rounded-2xl px-4 py-2.5 text-sm font-bold cursor-pointer",
+                tab === "signup"
+                  ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md"
+                  : "bg-secondary text-muted-foreground",
+              )}
+            >
+              ສະໝັກ
+            </button>
+          </div>
         </div>
 
-        <div className="card-tile p-6">
-          <Tabs defaultValue={mode ?? "login"} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-secondary">
-              <TabsTrigger value="login">ເຂົ້າສູ່ລະບົບ</TabsTrigger>
-              <TabsTrigger value="signup">ສະໝັກສະມາຊິກ</TabsTrigger>
-            </TabsList>
+        <div className="overflow-hidden rounded-3xl bg-secondary/40 shadow-sm">
+          {/* gradient card header */}
+          <div className="bg-gradient-to-r from-primary/90 to-primary px-5 py-5 text-primary-foreground">
+            <h1 className="flex items-center gap-2 text-2xl font-bold">
+              {tab === "login" ? <LogIn className="size-6" /> : <UserPlus className="size-6" />}
+              {tab === "login" ? "ເຂົ້າສູ່ລະບົບ" : "ສະໝັກສະມາຊິກ"}
+            </h1>
+            <p className="mt-1 text-sm opacity-90">
+              {tab === "login" ? "ຫາກຍັງບໍ່ມີບັນຊີ? " : "ຫາກມີບັນຊີແລ້ວ? "}
+              <button
+                type="button"
+                onClick={() => setTab(tab === "login" ? "signup" : "login")}
+                className="font-bold underline underline-offset-4 cursor-pointer"
+              >
+                {tab === "login" ? "ສະໝັກສະມາຊິກ" : "ເຂົ້າສູ່ລະບົບ"}
+              </button>
+            </p>
+          </div>
 
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4 mt-4">
+          <div className="px-5 py-6">
+            {tab === "login" ? (
+              <form onSubmit={handleLogin} className="space-y-5">
                 <div>
-                  <Label htmlFor="l-email">ອີເມວ</Label>
-                  <Input id="l-email" name="email" type="email" autoComplete="email" required className="mt-1" />
+                  <Label htmlFor="l-email" className="text-base font-bold">ອີເມວ<Req /></Label>
+                  <Input id="l-email" name="email" type="email" autoComplete="email" required
+                    placeholder="user@gmail.com" className={fieldClass} />
                 </div>
                 <div>
-                  <Label htmlFor="l-pw">ລະຫັດຜ່ານ</Label>
-                  <Input id="l-pw" name="password" type="password" autoComplete="current-password" required className="mt-1" />
+                  <Label htmlFor="l-pw" className="text-base font-bold">ລະຫັດຜ່ານ<Req /></Label>
+                  <Input id="l-pw" name="password" type="password" autoComplete="current-password" required
+                    placeholder="**********" className={fieldClass} />
                 </div>
-                <Button type="submit" disabled={busy} className="w-full btn-neon">
+                <label className="flex items-center gap-3 text-base font-bold cursor-pointer">
+                  <input type="checkbox" defaultChecked className="size-5 accent-primary rounded" />
+                  ຢູ່ໃນລະບົບຕະຫຼອດ
+                </label>
+                <Button type="submit" disabled={busy}
+                  className="h-13 w-full rounded-2xl bg-gradient-to-r from-primary/80 to-primary text-lg font-bold">
                   {busy ? "ກຳລັງດຳເນີນການ..." : "ເຂົ້າສູ່ລະບົບ"}
                 </Button>
                 <button type="button" onClick={() => setForgotOpen(true)}
-                  className="w-full text-center text-xs text-primary underline underline-offset-4 cursor-pointer">
-                  ລືມລະຫັດຜ່ານ?
+                  className="w-full text-center text-base font-bold text-primary underline underline-offset-4 cursor-pointer">
+                  ລືມລະຫັດຜ່ານ
                 </button>
               </form>
-
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4 mt-4">
+            ) : (
+              <form onSubmit={handleSignup} className="space-y-5">
                 <div>
-                  <Label htmlFor="s-username">ຊື່ຜູ້ໃຊ້</Label>
-                  <Input id="s-username" name="username" required maxLength={50} className="mt-1" />
+                  <Label htmlFor="s-username" className="text-base font-bold">ຊື່ຜູ້ໃຊ້<Req /></Label>
+                  <Input id="s-username" name="username" required maxLength={50}
+                    placeholder="Username" className={fieldClass} />
                 </div>
                 <div>
-                  <Label htmlFor="s-email">ອີເມວ</Label>
-                  <Input id="s-email" name="email" type="email" required className="mt-1" />
+                  <Label htmlFor="s-email" className="text-base font-bold">ອີເມວ<Req /></Label>
+                  <Input id="s-email" name="email" type="email" required
+                    placeholder="user@gmail.com" className={fieldClass} />
                 </div>
                 <div>
-                  <Label htmlFor="s-pw">ລະຫັດຜ່ານ (ຢ່າງນ້ອຍ 8 ຕົວ)</Label>
-                  <Input id="s-pw" name="password" type="password" minLength={8} required className="mt-1" />
+                  <Label htmlFor="s-pw" className="text-base font-bold">ລະຫັດຜ່ານ<Req /></Label>
+                  <Input id="s-pw" name="password" type="password" minLength={8} required
+                    placeholder="**********" className={fieldClass} />
                 </div>
                 <div>
-                  <Label htmlFor="s-confirm">ຢືນຢັນລະຫັດຜ່ານ</Label>
-                  <Input id="s-confirm" name="confirm" type="password" minLength={8} required className="mt-1" />
+                  <Label htmlFor="s-confirm" className="text-base font-bold">ຢືນຢັນລະຫັດຜ່ານ<Req /></Label>
+                  <Input id="s-confirm" name="confirm" type="password" minLength={8} required
+                    placeholder="**********" className={fieldClass} />
                 </div>
-                <Button type="submit" disabled={busy} className="w-full btn-neon">
+                <p className="text-xs text-muted-foreground">ລະຫັດຜ່ານຢ່າງນ້ອຍ 8 ຕົວອັກສອນ</p>
+                <Button type="submit" disabled={busy}
+                  className="h-13 w-full rounded-2xl bg-gradient-to-r from-primary/80 to-primary text-lg font-bold">
                   {busy ? "ກຳລັງດຳເນີນການ..." : "ສະໝັກສະມາຊິກ"}
                 </Button>
               </form>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </div>
       </div>
 
@@ -188,6 +238,5 @@ function AuthPage() {
         </DialogContent>
       </Dialog>
     </div>
-
   );
 }
