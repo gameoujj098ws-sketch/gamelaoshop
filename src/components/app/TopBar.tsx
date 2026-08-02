@@ -63,12 +63,21 @@ export function TopBar() {
               <ProfileMenu username={username} />
             </>
           ) : (
-            <Link
-              to="/auth"
-              className="btn-neon px-3 py-1.5 text-xs font-bold"
-            >
-              ເຂົ້າສູ່ລະບົບ
-            </Link>
+            <>
+              <Link
+                to="/auth"
+                className="rounded-full border border-border/70 px-3 py-1.5 text-xs font-bold text-foreground"
+              >
+                ເຂົ້າສູ່ລະບົບ
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: "signup" } as never}
+                className="btn-neon px-3 py-1.5 text-xs font-bold"
+              >
+                ສະໝັກສະມາຊິກ
+              </Link>
+            </>
           )}
         </div>
       </div>

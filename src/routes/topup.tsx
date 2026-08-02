@@ -302,7 +302,7 @@ function QrStep({
   // Auto-close result popup — both outcomes return to the amount screen.
   useEffect(() => {
     if (!result) return;
-    const t = setTimeout(onDone, 5000);
+    const t = setTimeout(onDone, result.ok ? 5000 : 12000);
     return () => clearTimeout(t);
   }, [result, onDone]);
 
@@ -416,7 +416,10 @@ function ResultPopup({ ok, message, onClose }: { ok: boolean; message: string; o
           <XCircle className="size-16 text-destructive mx-auto" />
         )}
         <div className="font-bold text-base">{ok ? "ສຳເລັດ" : "ສະລິບບໍ່ຖືກຕ້ອງ"}</div>
-        <div className="text-sm text-muted-foreground">{message}</div>
+        {!ok && <div className="text-xs font-semibold text-destructive">ເຫດຜົນ:</div>}
+        <div className={cn("text-sm whitespace-pre-line", ok ? "text-muted-foreground" : "text-foreground")}>
+          {message}
+        </div>
         <Button onClick={onClose} className="w-full btn-neon">ຕົກລົງ</Button>
       </div>
     </div>
