@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   createTopupInput,
+  parseLaoSlipTime,
   recipientNameMatches,
   sha256Hex,
   slipTimeIsValid,
@@ -220,7 +221,6 @@ export const submitSlip = createServerFn({ method: "POST" })
       verdict = null;
     }
 
-    const failGeneric = "ບໍ່ສາມາດຢືນຢັນຂໍ້ມູນສະລິບໄດ້, ກະລຸນາກວດເບິ່ງແລ້ວລອງໃໝ່";
     const reqId = req.id;
     const reqAmount = req.amount;
     async function reject(reasonCode: string) {
