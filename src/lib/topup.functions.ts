@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   createTopupInput,
+  parseLaoSlipTime,
   recipientNameMatches,
   sha256Hex,
   slipTimeIsValid,
@@ -220,7 +221,6 @@ export const submitSlip = createServerFn({ method: "POST" })
       verdict = null;
     }
 
-    const failGeneric = "ບໍ່ສາມາດຢືນຢັນຂໍ້ມູນສະລິບໄດ້, ກະລຸນາກວດເບິ່ງແລ້ວລອງໃໝ່";
     const reqId = req.id;
     const reqAmount = req.amount;
     async function reject(reasonCode: string) {
@@ -246,32 +246,48 @@ export const submitSlip = createServerFn({ method: "POST" })
 
     if (!verdict) {
       await reject("NO_VERDICT");
-      return { ok: false, reason: failGeneric };
+      return { ok: false, reason: "ອ່ານຂໍ້ມູນໃນຮູບບໍ່ໄດ້ — ກະລຸນາແນບຮູບສະລິບທີ່ຊັດເຈນ ເຫັນຊື່ຜູ້ຮັບ, ຈຳນວນເງິນ ແລະ ວັນ-ເວລາ" };
     }
 
     // Authenticity
     if (!verdict.looks_authentic || verdict.confidence < 0.5) {
       await reject("AUTH_FAIL");
-      return { ok: false, reason: failGeneric };
+      return { ok: false, reason: "ຮູບນີ້ບໍ່ຄືສະລິບໂອນເງິນຈິງ ຫຼື ຂໍ້ມູນບໍ່ຊັດເຈນ (ອາດຖືກແກ້ໄຂ/ຖ່າຍບໍ່ຄົບ)" };
     }
 
     // Amount check (must match exactly, ±1 kip rounding tolerance)
     if (verdict.amount == null || Math.abs(verdict.amount - req.amount) > 1) {
       await reject("AMOUNT_MISMATCH");
-      return { ok: false, reason: "ຈຳນວນເງິນໃນສະລິບບໍ່ຕົງກັບຍອດທີ່ສ້າງໄວ້" };
+      return {
+        ok: false,
+        reason: verdict.amount == null
+          ? "ບໍ່ພົບຈຳນວນເງິນໃນສະລິບ"
+          : `ຈຳນວນເງິນບໍ່ຕົງກັນ: ໃນສະລິບ ${verdict.amount.toLocaleString()} ₭ ແຕ່ລາຍການນີ້ຕ້ອງເປັນ ${req.amount.toLocaleString()} ₭`,
+      };
     }
 
     // Receiver name: SOMYONE KHAMKHEUNG is required; MR is optional.
     if (!recipientNameMatches(verdict.receiver_name)) {
       await reject("NAME_MISMATCH");
-      return { ok: false, reason: "ຊື່ບັນຊີຜູ້ຮັບບໍ່ຖືກຕ້ອງ" };
+      return {
+        ok: false,
+        reason: `ຊື່ບັນຊີຜູ້ຮັບບໍ່ຖືກຕ້ອງ: ໃນສະລິບແມ່ນ "${verdict.receiver_name ?? "ບໍ່ພົບ"}" ແຕ່ຕ້ອງໂອນເຂົ້າຊື່ SOMYONE KHAMKHEUNG`,
+      };
     }
 
     // A visible date and time are mandatory: same Lao calendar day and within
     // the 15-minute window beginning when this request was created.
     if (!slipTimeIsValid(verdict.transfer_datetime, req.created_at)) {
       await reject("DATETIME_MISMATCH");
-      return { ok: false, reason: failGeneric };
+      const parsed = parseLaoSlipTime(verdict.transfer_datetime);
+      const fmt = (ms: number) =>
+        new Date(ms + 7 * 3_600_000).toISOString().replace("T", " ").slice(0, 16);
+      return {
+        ok: false,
+        reason: parsed == null
+          ? "ບໍ່ພົບວັນ-ເວລາໂອນໃນສະລິບ ຫຼື ອ່ານບໍ່ອອກ"
+          : `ວັນ-ເວລາໂອນບໍ່ຖືກຕ້ອງ: ໃນສະລິບ ${fmt(parsed)} ແຕ່ຕ້ອງໂອນໃນວັນດຽວກັນ ແລະ ພາຍໃນ ${TOPUP_EXPIRE_MINUTES} ນາທີ ຫຼັງສ້າງລາຍການ (${fmt(Date.parse(req.created_at))})`,
+      };
     }
 
 
