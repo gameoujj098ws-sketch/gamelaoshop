@@ -60,9 +60,14 @@ export function TopBar() {
     <header className="sticky top-0 z-40 backdrop-blur-md bg-background/70 border-b border-border/50">
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent grid place-items-center neon-glow">
-            <Gamepad2 className="size-5 text-white" />
-          </div>
+          {logo ? (
+            <img src={logo} alt="Gamelao" className="size-9 rounded-xl object-cover" />
+          ) : (
+            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent grid place-items-center neon-glow">
+              <Gamepad2 className="size-5 text-white" />
+            </div>
+          )}
+
           <div className="leading-tight">
             <div className="text-sm font-extrabold tracking-wide">Gamelao</div>
             <div className="text-[10px] text-muted-foreground -mt-0.5">ເຕີມເກມອອນລາຍ</div>
