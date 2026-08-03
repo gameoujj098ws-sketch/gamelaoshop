@@ -13,6 +13,8 @@ import { CheckCircle2, XCircle, Upload, Copy, QrCode as QrIcon, Ticket, Loader2,
 import { formatKip } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import qrIcon from "@/assets/topup-qr.jpeg.asset.json";
+import codeIcon from "@/assets/topup-code.jpeg.asset.json";
 
 
 export const Route = createFileRoute("/topup")({
