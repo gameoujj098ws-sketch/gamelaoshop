@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TopupRouteImport } from './routes/topup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -30,6 +31,11 @@ const TopupRoute = TopupRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedeemRoute = RedeemRouteImport.update({
+  id: '/redeem',
+  path: '/redeem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/history': typeof HistoryRoute
+  '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/history': typeof HistoryRoute
+  '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/history': typeof HistoryRoute
+  '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/history'
+    | '/redeem'
     | '/reset-password'
     | '/topup'
     | '/admin'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/history'
+    | '/redeem'
     | '/reset-password'
     | '/topup'
     | '/admin'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/history'
+    | '/redeem'
     | '/reset-password'
     | '/topup'
     | '/_authenticated/admin'
@@ -172,6 +184,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CardsRoute: typeof CardsRoute
   HistoryRoute: typeof HistoryRoute
+  RedeemRoute: typeof RedeemRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopupRoute: typeof TopupRoute
   GameIdRoute: typeof GameIdRoute
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redeem': {
+      id: '/redeem'
+      path: '/redeem'
+      fullPath: '/redeem'
+      preLoaderRoute: typeof RedeemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -289,6 +309,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CardsRoute: CardsRoute,
   HistoryRoute: HistoryRoute,
+  RedeemRoute: RedeemRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TopupRoute: TopupRoute,
   GameIdRoute: GameIdRoute,
