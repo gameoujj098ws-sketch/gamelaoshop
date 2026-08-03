@@ -18,6 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GameIdRouteImport } from './routes/game.$id'
+import { Route as CardIdRouteImport } from './routes/card.$id'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
@@ -67,6 +68,11 @@ const GameIdRoute = GameIdRouteImport.update({
   path: '/game/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CardIdRoute = CardIdRouteImport.update({
+  id: '/card/$id',
+  path: '/card/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/card/$id': typeof CardIdRoute
   '/game/$id': typeof GameIdRoute
 }
 export interface FileRoutesByTo {
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/card/$id': typeof CardIdRoute
   '/game/$id': typeof GameIdRoute
 }
 export interface FileRoutesById {
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/card/$id': typeof CardIdRoute
   '/game/$id': typeof GameIdRoute
 }
 export interface FileRouteTypes {
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/profile'
     | '/settings'
+    | '/card/$id'
     | '/game/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/profile'
     | '/settings'
+    | '/card/$id'
     | '/game/$id'
   id:
     | '__root__'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/_authenticated/messages'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
+    | '/card/$id'
     | '/game/$id'
   fileRoutesById: FileRoutesById
 }
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   RedeemRoute: typeof RedeemRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopupRoute: typeof TopupRoute
+  CardIdRoute: typeof CardIdRoute
   GameIdRoute: typeof GameIdRoute
 }
 
@@ -255,6 +268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/card/$id': {
+      id: '/card/$id'
+      path: '/card/$id'
+      fullPath: '/card/$id'
+      preLoaderRoute: typeof CardIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   RedeemRoute: RedeemRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TopupRoute: TopupRoute,
+  CardIdRoute: CardIdRoute,
   GameIdRoute: GameIdRoute,
 }
 export const routeTree = rootRouteImport
