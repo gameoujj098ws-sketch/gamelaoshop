@@ -97,14 +97,19 @@ function HomePage() {
           <div className="-mx-4 px-4 overflow-x-auto no-scrollbar">
             <div className="flex gap-3 min-w-max pb-1">
               {cards.map((c) => (
-                <div key={c.id} className="w-40 card-tile overflow-hidden shrink-0">
+                <Link
+                  key={c.id}
+                  to="/card/$id"
+                  params={{ id: c.id }}
+                  className="w-40 card-tile overflow-hidden shrink-0 block cursor-pointer transition hover:border-primary/60 active:scale-[0.98]"
+                >
                   {c.image_url ? (
                     <img src={c.image_url} alt={c.name} className="w-full aspect-square object-cover" />
                   ) : (
                     <div className="w-full aspect-square bg-surface" />
                   )}
                   <div className="p-2 text-center text-xs font-medium truncate">{c.name}</div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -121,9 +126,12 @@ function HomePage() {
           </div>
         )}
       </div>
+
+      {showAd && <AdPopup images={ads} onClose={() => setShowAd(false)} />}
     </AppShell>
   );
 }
+
 
 function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
