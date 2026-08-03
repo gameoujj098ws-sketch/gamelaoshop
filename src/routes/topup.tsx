@@ -161,37 +161,39 @@ function TopupFlow() {
 
 function ChooseMethod({ onQr }: { onQr: () => void }) {
   return (
-    <div className="px-4 space-y-4">
-      <div className="card-tile p-5">
-        <h2 className="text-base font-bold mb-1">ເລືອກຊ່ອງທາງເຕີມເງິນ</h2>
-        <p className="text-xs text-muted-foreground">ເລືອກວິທີເຕີມເງິນທີ່ທ່ານຕ້ອງການ</p>
+    <div className="px-4">
+      <div className="card-tile p-2 space-y-2">
+        <div className="rounded-2xl bg-gradient-to-br from-primary to-accent p-5 text-primary-foreground">
+          <h2 className="text-lg font-extrabold">ເລືອກຊ່ອງທາງເຕີມເງິນ</h2>
+          <p className="text-sm opacity-90 mt-1">ເລືອກວິທີເຕີມເງິນທີ່ທ່ານຕ້ອງການ</p>
+        </div>
+
+        <button
+          onClick={onQr}
+          className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-4 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99] cursor-pointer"
+        >
+          <img src={qrIcon.url} alt="QR Code" className="size-20 rounded-xl object-cover shrink-0" />
+          <div className="min-w-0">
+            <div className="font-bold text-base">ເຕີມຜ່ານ QR Code</div>
+            <div className="text-xs text-muted-foreground">ໂອນຜ່ານທະນາຄານ + ແນບສະລິບ</div>
+          </div>
+        </button>
+
+        <Link
+          to="/redeem"
+          className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-4 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99]"
+        >
+          <img src={codeIcon.url} alt="Code" className="size-20 rounded-xl object-cover shrink-0" />
+          <div className="min-w-0">
+            <div className="font-bold text-base">ເຕີມດ້ວຍໂຄດ</div>
+            <div className="text-xs text-muted-foreground">ໃສ່ໂຄດເຕີມເງິນ, ເຂົ້າກະເປົາທັນທີ</div>
+          </div>
+        </Link>
       </div>
-
-      <button
-        onClick={onQr}
-        className="w-full card-tile p-5 flex items-center gap-4 text-left hover:border-primary/60 transition"
-      >
-        <div className="size-12 rounded-xl bg-primary/20 grid place-items-center">
-          <QrIcon className="size-6 text-primary" />
-        </div>
-        <div className="flex-1">
-          <div className="font-semibold">ເຕີມຜ່ານ QR Code</div>
-          <div className="text-xs text-muted-foreground">ໂອນຜ່ານທະນາຄານ + ແນບສະລິບ</div>
-        </div>
-      </button>
-
-      <Link to="/cards" className="w-full card-tile p-5 flex items-center gap-4 text-left hover:border-primary/60 transition">
-        <div className="size-12 rounded-xl bg-primary/20 grid place-items-center">
-          <Ticket className="size-6 text-primary" />
-        </div>
-        <div className="flex-1">
-          <div className="font-semibold">ເຕີມດ້ວຍໂຄດ</div>
-          <div className="text-xs text-muted-foreground">ໃສ່ໂຄດເຕີມເງິນ, ເຂົ້າກະເປົາທັນທີ</div>
-        </div>
-      </Link>
     </div>
   );
 }
+
 
 function AmountStep({
   amount, setAmount, customAmount, setCustomAmount, onBack, onNext,
