@@ -344,6 +344,10 @@ export const adminSaveSettings = createServerFn({ method: "POST" })
         bank_qr_image_url: z.string().max(500).nullable().optional(),
         contact_info: z.string().max(1000).nullable().optional(),
         primary_color: z.string().max(40).nullable().optional(),
+        logo_url: z.string().max(500).nullable().optional(),
+        slide_images: z.array(z.string().max(500)).max(30).optional(),
+        slide_interval: z.number().int().min(1).max(60).optional(),
+        ad_images: z.array(z.string().max(500)).max(30).optional(),
       })
       .parse(raw),
   )
