@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Flame, CreditCard, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/app/AppShell";
+import { ImageSlider, AdPopup } from "@/components/app/Slider";
 
 interface Category {
   id: string;
