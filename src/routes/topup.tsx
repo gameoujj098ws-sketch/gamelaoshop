@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import QRCode from "qrcode";
-import { CheckCircle2, XCircle, Upload, Copy, QrCode as QrIcon, Ticket, Loader2, ArrowLeft, Wallet } from "lucide-react";
+import { CheckCircle2, XCircle, Upload, Copy, Loader2, ArrowLeft, Wallet } from "lucide-react";
 import { formatKip } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
