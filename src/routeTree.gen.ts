@@ -11,12 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TopupRouteImport } from './routes/topup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RedeemRouteImport } from './routes/redeem'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GameIdRouteImport } from './routes/game.$id'
+import { Route as CardIdRouteImport } from './routes/card.$id'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
@@ -30,6 +33,16 @@ const TopupRoute = TopupRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedeemRoute = RedeemRouteImport.update({
+  id: '/redeem',
+  path: '/redeem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -61,6 +74,11 @@ const GameIdRoute = GameIdRouteImport.update({
   path: '/game/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CardIdRoute = CardIdRouteImport.update({
+  id: '/card/$id',
+  path: '/card/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -87,12 +105,15 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
+  '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/card/$id': typeof CardIdRoute
   '/game/$id': typeof GameIdRoute
 }
 export interface FileRoutesByTo {
@@ -100,12 +121,15 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
+  '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/card/$id': typeof CardIdRoute
   '/game/$id': typeof GameIdRoute
 }
 export interface FileRoutesById {
@@ -115,12 +139,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
+  '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/card/$id': typeof CardIdRoute
   '/game/$id': typeof GameIdRoute
 }
 export interface FileRouteTypes {
@@ -130,12 +157,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/history'
+    | '/home'
+    | '/redeem'
     | '/reset-password'
     | '/topup'
     | '/admin'
     | '/messages'
     | '/profile'
     | '/settings'
+    | '/card/$id'
     | '/game/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,12 +173,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/history'
+    | '/home'
+    | '/redeem'
     | '/reset-password'
     | '/topup'
     | '/admin'
     | '/messages'
     | '/profile'
     | '/settings'
+    | '/card/$id'
     | '/game/$id'
   id:
     | '__root__'
@@ -157,12 +190,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/history'
+    | '/home'
+    | '/redeem'
     | '/reset-password'
     | '/topup'
     | '/_authenticated/admin'
     | '/_authenticated/messages'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
+    | '/card/$id'
     | '/game/$id'
   fileRoutesById: FileRoutesById
 }
@@ -172,8 +208,11 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CardsRoute: typeof CardsRoute
   HistoryRoute: typeof HistoryRoute
+  HomeRoute: typeof HomeRoute
+  RedeemRoute: typeof RedeemRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopupRoute: typeof TopupRoute
+  CardIdRoute: typeof CardIdRoute
   GameIdRoute: typeof GameIdRoute
 }
 
@@ -191,6 +230,20 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redeem': {
+      id: '/redeem'
+      path: '/redeem'
+      fullPath: '/redeem'
+      preLoaderRoute: typeof RedeemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -233,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/game/$id'
       fullPath: '/game/$id'
       preLoaderRoute: typeof GameIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/card/$id': {
+      id: '/card/$id'
+      path: '/card/$id'
+      fullPath: '/card/$id'
+      preLoaderRoute: typeof CardIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings': {
@@ -289,8 +349,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CardsRoute: CardsRoute,
   HistoryRoute: HistoryRoute,
+  HomeRoute: HomeRoute,
+  RedeemRoute: RedeemRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TopupRoute: TopupRoute,
+  CardIdRoute: CardIdRoute,
   GameIdRoute: GameIdRoute,
 }
 export const routeTree = rootRouteImport

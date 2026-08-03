@@ -221,6 +221,8 @@ export type Database = {
       orders: {
         Row: {
           admin_message: string | null
+          card_id: string | null
+          card_package_id: string | null
           category_id: string | null
           category_name: string | null
           created_at: string
@@ -235,6 +237,8 @@ export type Database = {
         }
         Insert: {
           admin_message?: string | null
+          card_id?: string | null
+          card_package_id?: string | null
           category_id?: string | null
           category_name?: string | null
           created_at?: string
@@ -249,6 +253,8 @@ export type Database = {
         }
         Update: {
           admin_message?: string | null
+          card_id?: string | null
+          card_package_id?: string | null
           category_id?: string | null
           category_name?: string | null
           created_at?: string
@@ -262,6 +268,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "prepaid_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_card_package_id_fkey"
+            columns: ["card_package_id"]
+            isOneToOne: false
+            referencedRelation: "card_packages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_category_id_fkey"
             columns: ["category_id"]
@@ -417,33 +437,45 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          ad_images: Json
           bank_account_name: string | null
           bank_account_number: string | null
           bank_name: string | null
           bank_qr_image_url: string | null
           contact_info: string | null
           id: number
+          logo_url: string | null
           primary_color: string | null
+          slide_images: Json
+          slide_interval: number
           updated_at: string
         }
         Insert: {
+          ad_images?: Json
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_name?: string | null
           bank_qr_image_url?: string | null
           contact_info?: string | null
           id?: number
+          logo_url?: string | null
           primary_color?: string | null
+          slide_images?: Json
+          slide_interval?: number
           updated_at?: string
         }
         Update: {
+          ad_images?: Json
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_name?: string | null
           bank_qr_image_url?: string | null
           contact_info?: string | null
           id?: number
+          logo_url?: string | null
           primary_color?: string | null
+          slide_images?: Json
+          slide_interval?: number
           updated_at?: string
         }
         Relationships: []

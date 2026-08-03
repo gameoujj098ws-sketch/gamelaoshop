@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Flame, CreditCard, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/app/AppShell";
+import { ImageSlider, AdPopup } from "@/components/app/Slider";
 
 interface Category {
   id: string;
@@ -33,18 +34,38 @@ function HomePage() {
   const [popular, setPopular] = useState<Category[]>([]);
   const [others, setOthers] = useState<Category[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
+  const [slides, setSlides] = useState<string[]>([]);
+  const [slideInterval, setSlideInterval] = useState(4);
+  const [ads, setAds] = useState<string[]>([]);
+  const [showAd, setShowAd] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
-      const [{ data: cats }, { data: cs }] = await Promise.all([
+      const [{ data: cats }, { data: cs }, { data: st }] = await Promise.all([
         supabase.from("categories").select("*").eq("is_active", true).order("sort_order"),
         supabase.from("prepaid_cards").select("*").eq("is_active", true).order("sort_order"),
+        supabase.from("site_settings").select("slide_images, slide_interval, ad_images").eq("id", 1).maybeSingle(),
       ]);
       const list = (cats ?? []) as Category[];
       setPopular(list.filter((c) => c.section === "popular"));
       setOthers(list.filter((c) => c.section !== "popular"));
       setCards((cs ?? []) as Card[]);
+
+      const s = st as { slide_images?: string[]; slide_interval?: number; ad_images?: string[] } | null;
+      const slideList = Array.isArray(s?.slide_images) ? s!.slide_images.filter(Boolean) : [];
+      const adList = Array.isArray(s?.ad_images) ? s!.ad_images.filter(Boolean) : [];
+      setSlides(slideList);
+      setSlideInterval(Number(s?.slide_interval ?? 4));
+      setAds(adList);
+
+      // Show the ad popup once per browser session.
+      if (adList.length > 0 && typeof window !== "undefined") {
+        if (!window.sessionStorage.getItem("ad-shown")) {
+          window.sessionStorage.setItem("ad-shown", "1");
+          setShowAd(true);
+        }
+      }
     })();
   }, []);
 
@@ -55,7 +76,10 @@ function HomePage() {
   return (
     <AppShell>
       <div className="px-4 space-y-6">
+        <ImageSlider images={slides} intervalSec={slideInterval} />
+
         <SectionTitle icon={<Flame className="size-4 text-primary" />} title="ເກມທີ່ໄດ້ຮັບຄວາມນິຍົມ" />
+
         {popular.length === 0 ? (
           <EmptyState text="ຍັງບໍ່ມີສິນຄ້າ — ລໍຖ້າແອດມິນເພີ່ມ" />
         ) : (
@@ -73,14 +97,19 @@ function HomePage() {
           <div className="-mx-4 px-4 overflow-x-auto no-scrollbar">
             <div className="flex gap-3 min-w-max pb-1">
               {cards.map((c) => (
-                <div key={c.id} className="w-40 card-tile overflow-hidden shrink-0">
+                <Link
+                  key={c.id}
+                  to="/card/$id"
+                  params={{ id: c.id }}
+                  className="w-40 card-tile overflow-hidden shrink-0 block cursor-pointer transition hover:border-primary/60 active:scale-[0.98]"
+                >
                   {c.image_url ? (
                     <img src={c.image_url} alt={c.name} className="w-full aspect-square object-cover" />
                   ) : (
                     <div className="w-full aspect-square bg-surface" />
                   )}
                   <div className="p-2 text-center text-xs font-medium truncate">{c.name}</div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -97,9 +126,12 @@ function HomePage() {
           </div>
         )}
       </div>
+
+      {showAd && <AdPopup images={ads} onClose={() => setShowAd(false)} />}
     </AppShell>
   );
 }
+
 
 function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
