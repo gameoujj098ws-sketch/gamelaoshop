@@ -10,6 +10,20 @@ export function TopBar() {
   const { user } = useAuth();
   const [balance, setBalance] = useState<number>(0);
   const [username, setUsername] = useState<string>("");
+  const [logo, setLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("site_settings")
+      .select("logo_url")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        const url = (data as { logo_url?: string | null } | null)?.logo_url?.trim();
+        if (url) setLogo(url);
+      });
+  }, []);
+
 
   useEffect(() => {
     if (!user) return;
