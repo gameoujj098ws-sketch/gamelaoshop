@@ -30,7 +30,9 @@ const TABS = [
   { key: "users", label: "ຜູ້ໃຊ້" },
   { key: "categories", label: "ໝວດໝູ່" },
   { key: "cards", label: "ບັດເຕີມເງິນ" },
+  { key: "store", label: "ສິນຄ້າທົ່ວໄປ" },
   { key: "orders", label: "ອໍເດີ" },
+
   { key: "topups", label: "ປະຫວັດເຕີມເງິນ" },
   { key: "settings", label: "ຕັ້ງຄ່າ" },
 ] as const;
