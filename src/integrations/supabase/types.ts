@@ -448,6 +448,9 @@ export type Database = {
           primary_color: string | null
           slide_images: Json
           slide_interval: number
+          store_notice_1: string | null
+          store_notice_2: string | null
+          store_slide_images: Json
           updated_at: string
         }
         Insert: {
@@ -462,6 +465,9 @@ export type Database = {
           primary_color?: string | null
           slide_images?: Json
           slide_interval?: number
+          store_notice_1?: string | null
+          store_notice_2?: string | null
+          store_slide_images?: Json
           updated_at?: string
         }
         Update: {
@@ -476,9 +482,183 @@ export type Database = {
           primary_color?: string | null
           slide_images?: Json
           slide_interval?: number
+          store_notice_1?: string | null
+          store_notice_2?: string | null
+          store_slide_images?: Json
           updated_at?: string
         }
         Relationships: []
+      }
+      store_categories: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      store_orders: {
+        Row: {
+          codes: Json
+          created_at: string
+          id: string
+          price: number
+          product_id: string | null
+          product_name: string
+          qty: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          codes?: Json
+          created_at?: string
+          id?: string
+          price: number
+          product_id?: string | null
+          product_name: string
+          qty?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          codes?: Json
+          created_at?: string
+          id?: string
+          price?: number
+          product_id?: string | null
+          product_name?: string
+          qty?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_product_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_sold: boolean
+          product_id: string
+          sold_at: string | null
+          sold_to: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_sold?: boolean
+          product_id: string
+          sold_at?: string | null
+          sold_to?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_sold?: boolean
+          product_id?: string
+          sold_at?: string | null
+          sold_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_product_codes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_products: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_hidden: boolean
+          name: string
+          original_price: number | null
+          price: number
+          sort_order: number
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_hidden?: boolean
+          name: string
+          original_price?: number | null
+          price?: number
+          sort_order?: number
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_hidden?: boolean
+          name?: string
+          original_price?: number | null
+          price?: number
+          sort_order?: number
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "store_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       topup_requests: {
         Row: {
