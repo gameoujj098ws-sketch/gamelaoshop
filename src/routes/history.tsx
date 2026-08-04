@@ -8,7 +8,7 @@ import { formatKip, formatDateTime, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Wallet, Gamepad2, LogIn } from "lucide-react";
+import { Loader2, Wallet, Gamepad2, LogIn, ShoppingBag } from "lucide-react";
 
 export const Route = createFileRoute("/history")({
   head: () => ({
@@ -19,12 +19,13 @@ export const Route = createFileRoute("/history")({
       { property: "og:description", content: "ປະຫວັດການເຕີມເງິນ, ຄຳສັ່ງຊື້ ແລະ ການເຂົ້າໃຊ້ງານ" },
     ],
   }),
-  validateSearch: z.object({ tab: z.enum(["wallet", "orders", "login"]).optional() }).parse,
+  validateSearch: z.object({ tab: z.enum(["wallet", "orders", "login", "store"]).optional() }).parse,
   component: HistoryPage,
 });
 
 const TABS = [
   { key: "orders", label: "ປະຫວັດເຕີມເກມ", icon: Gamepad2 },
+  { key: "store", label: "ປະຫວັດສິນຄ້າທົ່ວໄປ", icon: ShoppingBag },
   { key: "wallet", label: "ປະຫວັດເຕີມເງິນ", icon: Wallet },
   { key: "login", label: "ການເຂົ້າໃຊ້", icon: LogIn },
 ] as const;
@@ -41,7 +42,12 @@ interface TopupRow {
   verify_reason: string | null; verified_amount: number | null; verified_name: string | null;
   verified_ref: string | null; verified_at: string | null; created_at: string; expires_at: string;
 }
+interface StoreRow {
+  id: string; product_name: string | null; price: number; qty: number;
+  codes: string[] | null; status: string; created_at: string;
+}
 interface LoginRow { id: string; ip: string | null; user_agent: string | null; created_at: string }
+
 
 function statusMeta(status: string) {
   switch (status) {
@@ -81,9 +87,12 @@ function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [topups, setTopups] = useState<TopupRow[]>([]);
+  const [storeOrders, setStoreOrders] = useState<StoreRow[]>([]);
   const [logins, setLogins] = useState<LoginRow[]>([]);
   const [detailOrder, setDetailOrder] = useState<OrderRow | null>(null);
   const [detailTopup, setDetailTopup] = useState<TopupRow | null>(null);
+  const [detailStore, setDetailStore] = useState<StoreRow | null>(null);
+  const [walletFilter, setWalletFilter] = useState<"approved" | "rejected">("approved");
 
   const userId = session?.user?.id;
 
@@ -92,19 +101,22 @@ function HistoryPage() {
     let alive = true;
     setLoading(true);
     (async () => {
-      const [o, t, l] = await Promise.all([
+      const [o, t, l, s] = await Promise.all([
         supabase.from("orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
         supabase.from("topup_requests").select("*").eq("user_id", userId).in("status", ["approved", "rejected"]).not("slip_url", "is", null).order("created_at", { ascending: false }).limit(100),
         supabase.from("login_history").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+        supabase.from("store_orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
       ]);
       if (!alive) return;
       setOrders((o.data ?? []) as unknown as OrderRow[]);
       setTopups((t.data ?? []) as unknown as TopupRow[]);
       setLogins((l.data ?? []) as unknown as LoginRow[]);
+      setStoreOrders((s.data ?? []) as unknown as StoreRow[]);
       setLoading(false);
     })();
     return () => { alive = false; };
   }, [userId]);
+
 
   if (authLoading) return <AppShell><div className="grid place-items-center py-16"><Loader2 className="size-5 animate-spin text-primary" /></div></AppShell>;
 
@@ -159,29 +171,65 @@ function HistoryPage() {
               ))}
             </div>
           )
-        ) : tab === "wallet" ? (
-          topups.length === 0 ? <Empty text="ຍັງບໍ່ມີປະຫວັດການເຕີມເງິນ" /> : (
+        ) : tab === "store" ? (
+          storeOrders.length === 0 ? <Empty text="ຍັງບໍ່ມີປະຫວັດການຊື້ສິນຄ້າທົ່ວໄປ" /> : (
             <div className="space-y-2">
-              {topups.map((t) => (
-                <button key={t.id} onClick={() => setDetailTopup(t)} className="card-tile p-4 w-full text-left space-y-2">
+              {storeOrders.map((s) => (
+                <button key={s.id} onClick={() => setDetailStore(s)} className="card-tile p-4 w-full text-left space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-semibold text-sm">ເຕີມເງິນຜ່ານ QR Code</div>
-                      <div className="text-[11px] text-muted-foreground">{formatDateTime(t.created_at)} · {timeAgo(t.created_at)}</div>
+                      <div className="font-semibold text-sm truncate">{s.product_name} × {s.qty}</div>
+                      <div className="text-[11px] text-muted-foreground">{formatDateTime(s.created_at)} · {timeAgo(s.created_at)}</div>
                     </div>
-                    <Badge status={t.status} />
+                    <Badge status={s.status} />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className={cn("text-sm font-semibold", t.status === "approved" ? "text-success" : "text-muted-foreground")}>
-                      +{formatKip(t.amount)} ₭
-                    </span>
+                    <span className="text-sm font-semibold text-success">-{formatKip(s.price)} ₭</span>
                     <span className="text-xs text-primary">ເບິ່ງລາຍລະອຽດ</span>
                   </div>
                 </button>
               ))}
             </div>
           )
+        ) : tab === "wallet" ? (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              {([["approved", "ສຳເລັດ"], ["rejected", "ບໍ່ສຳເລັດ"]] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setWalletFilter(k)}
+                  className={cn("flex-1 rounded-full px-4 py-1.5 text-xs border",
+                    walletFilter === k
+                      ? k === "approved" ? "border-success bg-success/10 text-success" : "border-destructive bg-destructive/10 text-destructive"
+                      : "border-border/60 bg-surface text-muted-foreground")}>
+                  {label} ({topups.filter((t) => t.status === k).length})
+                </button>
+              ))}
+            </div>
+            {topups.filter((t) => t.status === walletFilter).length === 0 ? (
+              <Empty text={walletFilter === "approved" ? "ຍັງບໍ່ມີການເຕີມເງິນທີ່ສຳເລັດ" : "ຍັງບໍ່ມີການເຕີມເງິນທີ່ບໍ່ສຳເລັດ"} />
+            ) : (
+              <div className="space-y-2">
+                {topups.filter((t) => t.status === walletFilter).map((t) => (
+                  <button key={t.id} onClick={() => setDetailTopup(t)} className="card-tile p-4 w-full text-left space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm">ເຕີມເງິນຜ່ານ QR Code</div>
+                        <div className="text-[11px] text-muted-foreground">{formatDateTime(t.created_at)} · {timeAgo(t.created_at)}</div>
+                      </div>
+                      <Badge status={t.status} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={cn("text-sm font-semibold", t.status === "approved" ? "text-success" : "text-muted-foreground")}>
+                        +{formatKip(t.amount)} ₭
+                      </span>
+                      <span className="text-xs text-primary">ເບິ່ງລາຍລະອຽດ</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
+
           logins.length === 0 ? <Empty text="ຍັງບໍ່ມີປະຫວັດການເຂົ້າໃຊ້" /> : (
             <div className="space-y-2">
               {logins.map((l) => (
@@ -242,7 +290,31 @@ function HistoryPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!detailStore} onOpenChange={(v) => !v && setDetailStore(null)}>
+        <DialogContent className="bg-surface-2 border-border max-w-sm">
+          <DialogHeader><DialogTitle>ລາຍລະອຽດສິນຄ້າທົ່ວໄປ</DialogTitle></DialogHeader>
+          {detailStore && (
+            <div className="space-y-2">
+              <div className="flex justify-end"><Badge status={detailStore.status} /></div>
+              <Row k="ສິນຄ້າ" v={detailStore.product_name ?? "-"} />
+              <Row k="ຈຳນວນ" v={String(detailStore.qty)} />
+              <Row k="ລາຄາລວມ" v={`${formatKip(detailStore.price)} ₭`} />
+              <Row k="ວັນທີຊື້" v={`${formatDateTime(detailStore.created_at)} (${timeAgo(detailStore.created_at)})`} />
+              {(detailStore.codes ?? []).length > 0 && (
+                <div className="space-y-1 pt-1">
+                  <div className="text-xs text-muted-foreground">ລະຫັດສິນຄ້າທີ່ໄດ້ຮັບ</div>
+                  {(detailStore.codes ?? []).map((c, i) => (
+                    <div key={i} className="rounded-md border border-border/60 px-2 py-1 text-sm break-all">{c}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppShell>
+
   );
 }
 
