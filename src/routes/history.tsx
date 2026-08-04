@@ -87,9 +87,12 @@ function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [topups, setTopups] = useState<TopupRow[]>([]);
+  const [storeOrders, setStoreOrders] = useState<StoreRow[]>([]);
   const [logins, setLogins] = useState<LoginRow[]>([]);
   const [detailOrder, setDetailOrder] = useState<OrderRow | null>(null);
   const [detailTopup, setDetailTopup] = useState<TopupRow | null>(null);
+  const [detailStore, setDetailStore] = useState<StoreRow | null>(null);
+  const [walletFilter, setWalletFilter] = useState<"approved" | "rejected">("approved");
 
   const userId = session?.user?.id;
 
@@ -98,19 +101,22 @@ function HistoryPage() {
     let alive = true;
     setLoading(true);
     (async () => {
-      const [o, t, l] = await Promise.all([
+      const [o, t, l, s] = await Promise.all([
         supabase.from("orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
         supabase.from("topup_requests").select("*").eq("user_id", userId).in("status", ["approved", "rejected"]).not("slip_url", "is", null).order("created_at", { ascending: false }).limit(100),
         supabase.from("login_history").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+        supabase.from("store_orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
       ]);
       if (!alive) return;
       setOrders((o.data ?? []) as unknown as OrderRow[]);
       setTopups((t.data ?? []) as unknown as TopupRow[]);
       setLogins((l.data ?? []) as unknown as LoginRow[]);
+      setStoreOrders((s.data ?? []) as unknown as StoreRow[]);
       setLoading(false);
     })();
     return () => { alive = false; };
   }, [userId]);
+
 
   if (authLoading) return <AppShell><div className="grid place-items-center py-16"><Loader2 className="size-5 animate-spin text-primary" /></div></AppShell>;
 
