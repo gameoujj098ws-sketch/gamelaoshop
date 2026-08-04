@@ -290,7 +290,31 @@ function HistoryPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!detailStore} onOpenChange={(v) => !v && setDetailStore(null)}>
+        <DialogContent className="bg-surface-2 border-border max-w-sm">
+          <DialogHeader><DialogTitle>ລາຍລະອຽດສິນຄ້າທົ່ວໄປ</DialogTitle></DialogHeader>
+          {detailStore && (
+            <div className="space-y-2">
+              <div className="flex justify-end"><Badge status={detailStore.status} /></div>
+              <Row k="ສິນຄ້າ" v={detailStore.product_name ?? "-"} />
+              <Row k="ຈຳນວນ" v={String(detailStore.qty)} />
+              <Row k="ລາຄາລວມ" v={`${formatKip(detailStore.price)} ₭`} />
+              <Row k="ວັນທີຊື້" v={`${formatDateTime(detailStore.created_at)} (${timeAgo(detailStore.created_at)})`} />
+              {(detailStore.codes ?? []).length > 0 && (
+                <div className="space-y-1 pt-1">
+                  <div className="text-xs text-muted-foreground">ລະຫັດສິນຄ້າທີ່ໄດ້ຮັບ</div>
+                  {(detailStore.codes ?? []).map((c, i) => (
+                    <div key={i} className="rounded-md border border-border/60 px-2 py-1 text-sm break-all">{c}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppShell>
+
   );
 }
 
