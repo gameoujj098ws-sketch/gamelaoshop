@@ -151,11 +151,14 @@ export function AdminStore() {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <Button size="sm" variant="outline" className="h-8 text-xs"
-                onClick={() => setProdForm({
-                  id: p.id, category_id: p.category_id ?? "", name: p.name, description: p.description ?? "",
-                  image_url: p.image_url ?? "", price: p.price, original_price: p.original_price ?? 0,
-                  is_hidden: p.is_hidden, sort_order: p.sort_order, is_active: p.is_active,
-                }) || setProdOpen(true)}>
+                onClick={() => {
+                  setProdForm({
+                    id: p.id, category_id: p.category_id ?? "", name: p.name, description: p.description ?? "",
+                    image_url: p.image_url ?? "", price: p.price, original_price: p.original_price ?? 0,
+                    is_hidden: p.is_hidden, sort_order: p.sort_order, is_active: p.is_active,
+                  });
+                  setProdOpen(true);
+                }}>
                 <Pencil className="size-3.5 mr-1" /> ແກ້ໄຂ
               </Button>
               <Button size="sm" className="btn-neon h-8 text-xs" onClick={() => void openStock(p)}>
