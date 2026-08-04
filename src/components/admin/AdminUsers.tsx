@@ -29,12 +29,46 @@ interface Detail {
 export function AdminUsers() {
   const list = useServerFn(adminListUsers);
   const send = useServerFn(adminSendMessage);
+  const getUser = useServerFn(adminGetUser);
+  const setPassword = useServerFn(adminSetUserPassword);
+  const setName = useServerFn(adminSetUsername);
+  const setWallet = useServerFn(adminSetWallet);
   const [q, setQ] = useState("");
   const [users, setUsers] = useState<U[]>([]);
   const [loading, setLoading] = useState(true);
   const [msgFor, setMsgFor] = useState<U | null>(null);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [walletMode, setWalletMode] = useState<"set" | "add">("set");
+  const [walletValue, setWalletValue] = useState(0);
+  const [walletNote, setWalletNote] = useState("");
+
+  async function openDetail(u: U) {
+    setDetailOpen(true);
+    setDetail(null);
+    setDetailLoading(true);
+    setNewPass("");
+    setWalletNote("");
+    setWalletMode("set");
+    try {
+      const res = await getUser({ data: { id: u.id } });
+      const d = res.user as Detail;
+      setDetail(d);
+      setEditName(d.username ?? "");
+      setWalletValue(d.wallet_balance);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ");
+      setDetailOpen(false);
+    } finally { setDetailLoading(false); }
+  }
+
 
   useEffect(() => {
     const t = setTimeout(async () => {
