@@ -9,6 +9,8 @@ import { AdminCards } from "@/components/admin/AdminCards";
 import { AdminOrders } from "@/components/admin/AdminOrders";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminTopups } from "@/components/admin/AdminTopups";
+import { AdminStore } from "@/components/admin/AdminStore";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
