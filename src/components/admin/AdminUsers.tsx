@@ -26,6 +26,15 @@ interface Detail {
 }
 
 
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <span className="text-muted-foreground shrink-0">{label}</span>
+      <span className="text-right break-all">{value}</span>
+    </div>
+  );
+}
+
 export function AdminUsers() {
   const list = useServerFn(adminListUsers);
   const send = useServerFn(adminSendMessage);
