@@ -70,8 +70,9 @@ function AdminPage() {
       {tab === "users" && <AdminUsers />}
       {tab === "categories" && <AdminCategories />}
       {tab === "cards" && <AdminCards />}
-
+      {tab === "store" && <AdminStore />}
       {tab === "orders" && <AdminOrders />}
+
       {tab === "topups" && <AdminTopups />}
       {tab === "settings" && <AdminSettings />}
     </div>
