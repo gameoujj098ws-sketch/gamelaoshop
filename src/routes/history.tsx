@@ -8,7 +8,7 @@ import { formatKip, formatDateTime, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Wallet, Gamepad2, LogIn } from "lucide-react";
+import { Loader2, Wallet, Gamepad2, LogIn, ShoppingBag } from "lucide-react";
 
 export const Route = createFileRoute("/history")({
   head: () => ({
