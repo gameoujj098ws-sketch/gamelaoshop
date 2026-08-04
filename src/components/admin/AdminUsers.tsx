@@ -82,7 +82,7 @@ export function AdminUsers() {
     }, 300);
     return () => clearTimeout(t);
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [q]);
+  }, [q, reloadKey]);
 
   return (
     <div className="space-y-3">
