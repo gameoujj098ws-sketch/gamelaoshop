@@ -171,29 +171,65 @@ function HistoryPage() {
               ))}
             </div>
           )
-        ) : tab === "wallet" ? (
-          topups.length === 0 ? <Empty text="ຍັງບໍ່ມີປະຫວັດການເຕີມເງິນ" /> : (
+        ) : tab === "store" ? (
+          storeOrders.length === 0 ? <Empty text="ຍັງບໍ່ມີປະຫວັດການຊື້ສິນຄ້າທົ່ວໄປ" /> : (
             <div className="space-y-2">
-              {topups.map((t) => (
-                <button key={t.id} onClick={() => setDetailTopup(t)} className="card-tile p-4 w-full text-left space-y-2">
+              {storeOrders.map((s) => (
+                <button key={s.id} onClick={() => setDetailStore(s)} className="card-tile p-4 w-full text-left space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-semibold text-sm">ເຕີມເງິນຜ່ານ QR Code</div>
-                      <div className="text-[11px] text-muted-foreground">{formatDateTime(t.created_at)} · {timeAgo(t.created_at)}</div>
+                      <div className="font-semibold text-sm truncate">{s.product_name} × {s.qty}</div>
+                      <div className="text-[11px] text-muted-foreground">{formatDateTime(s.created_at)} · {timeAgo(s.created_at)}</div>
                     </div>
-                    <Badge status={t.status} />
+                    <Badge status={s.status} />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className={cn("text-sm font-semibold", t.status === "approved" ? "text-success" : "text-muted-foreground")}>
-                      +{formatKip(t.amount)} ₭
-                    </span>
+                    <span className="text-sm font-semibold text-success">-{formatKip(s.price)} ₭</span>
                     <span className="text-xs text-primary">ເບິ່ງລາຍລະອຽດ</span>
                   </div>
                 </button>
               ))}
             </div>
           )
+        ) : tab === "wallet" ? (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              {([["approved", "ສຳເລັດ"], ["rejected", "ບໍ່ສຳເລັດ"]] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setWalletFilter(k)}
+                  className={cn("flex-1 rounded-full px-4 py-1.5 text-xs border",
+                    walletFilter === k
+                      ? k === "approved" ? "border-success bg-success/10 text-success" : "border-destructive bg-destructive/10 text-destructive"
+                      : "border-border/60 bg-surface text-muted-foreground")}>
+                  {label} ({topups.filter((t) => t.status === k).length})
+                </button>
+              ))}
+            </div>
+            {topups.filter((t) => t.status === walletFilter).length === 0 ? (
+              <Empty text={walletFilter === "approved" ? "ຍັງບໍ່ມີການເຕີມເງິນທີ່ສຳເລັດ" : "ຍັງບໍ່ມີການເຕີມເງິນທີ່ບໍ່ສຳເລັດ"} />
+            ) : (
+              <div className="space-y-2">
+                {topups.filter((t) => t.status === walletFilter).map((t) => (
+                  <button key={t.id} onClick={() => setDetailTopup(t)} className="card-tile p-4 w-full text-left space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm">ເຕີມເງິນຜ່ານ QR Code</div>
+                        <div className="text-[11px] text-muted-foreground">{formatDateTime(t.created_at)} · {timeAgo(t.created_at)}</div>
+                      </div>
+                      <Badge status={t.status} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={cn("text-sm font-semibold", t.status === "approved" ? "text-success" : "text-muted-foreground")}>
+                        +{formatKip(t.amount)} ₭
+                      </span>
+                      <span className="text-xs text-primary">ເບິ່ງລາຍລະອຽດ</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
+
           logins.length === 0 ? <Empty text="ຍັງບໍ່ມີປະຫວັດການເຂົ້າໃຊ້" /> : (
             <div className="space-y-2">
               {logins.map((l) => (
