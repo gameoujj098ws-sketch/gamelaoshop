@@ -75,7 +75,7 @@ function StoreHomePage() {
   return (
     <AppShell>
       <div className="space-y-4">
-        {slides.length > 0 && <div className="px-4"><ImageSlider images={slides} /></div>}
+        {slides.length > 0 && <div className="px-4"><ImageSlider images={slides} intervalSec={4} /></div>}
 
         <div className="px-4 grid grid-cols-2 gap-2">
           {[notices[0], notices[1]].map((n, i) => (
