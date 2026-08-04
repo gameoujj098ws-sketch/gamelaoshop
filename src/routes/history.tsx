@@ -19,12 +19,13 @@ export const Route = createFileRoute("/history")({
       { property: "og:description", content: "ປະຫວັດການເຕີມເງິນ, ຄຳສັ່ງຊື້ ແລະ ການເຂົ້າໃຊ້ງານ" },
     ],
   }),
-  validateSearch: z.object({ tab: z.enum(["wallet", "orders", "login"]).optional() }).parse,
+  validateSearch: z.object({ tab: z.enum(["wallet", "orders", "login", "store"]).optional() }).parse,
   component: HistoryPage,
 });
 
 const TABS = [
   { key: "orders", label: "ປະຫວັດເຕີມເກມ", icon: Gamepad2 },
+  { key: "store", label: "ປະຫວັດສິນຄ້າທົ່ວໄປ", icon: ShoppingBag },
   { key: "wallet", label: "ປະຫວັດເຕີມເງິນ", icon: Wallet },
   { key: "login", label: "ການເຂົ້າໃຊ້", icon: LogIn },
 ] as const;
@@ -41,7 +42,12 @@ interface TopupRow {
   verify_reason: string | null; verified_amount: number | null; verified_name: string | null;
   verified_ref: string | null; verified_at: string | null; created_at: string; expires_at: string;
 }
+interface StoreRow {
+  id: string; product_name: string | null; price: number; qty: number;
+  codes: string[] | null; status: string; created_at: string;
+}
 interface LoginRow { id: string; ip: string | null; user_agent: string | null; created_at: string }
+
 
 function statusMeta(status: string) {
   switch (status) {
