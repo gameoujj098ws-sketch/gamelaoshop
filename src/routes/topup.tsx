@@ -215,7 +215,7 @@ function ChooseMethod({ onQr }: { onQr: () => void }) {
 
 
 function AmountStep({
-  amount, setAmount, customAmount, setCustomAmount, onBack, onNext,
+  amount, setAmount, customAmount, setCustomAmount, onBack, onNext, creating,
 }: {
   amount: number;
   setAmount: (v: number) => void;
@@ -223,6 +223,7 @@ function AmountStep({
   setCustomAmount: (v: string) => void;
   onBack: () => void;
   onNext: () => void;
+  creating?: boolean;
 }) {
   return (
     <div className="px-4 space-y-4">
