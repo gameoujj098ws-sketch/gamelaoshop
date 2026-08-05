@@ -78,51 +78,66 @@ function TopupFlow() {
   const [amount, setAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [request, setRequest] = useState<{ id: string; amount: number; expires_at: string; reference_code: string | null } | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const create = useServerFn(createTopupRequest);
   const cancel = useServerFn(cancelTopup);
   const active = useServerFn(getActiveTopup);
   const [restoring, setRestoring] = useState(true);
 
-  // Restore an in-flight request so the QR survives page switches until it
-  // expires (15 min) or the user cancels.
+  // Entering this page ALWAYS starts clean: any leftover pending request from a
+  // previous visit is cancelled so the old QR/slip screen can never reappear.
   useEffect(() => {
+    let alive = true;
     (async () => {
       try {
         const res = await active({ data: undefined as never });
         if (res.request) {
-          setRequest(res.request as never);
-          setStep("qr");
+          try { await cancel({ data: { id: (res.request as { id: string }).id } }); } catch { /* ignore */ }
         }
       } catch {
         /* ignore */
       } finally {
-        setRestoring(false);
+        if (alive) {
+          setRequest(null);
+          setStep("choose");
+          setAmount(0);
+          setCustomAmount("");
+          setRestoring(false);
+        }
       }
     })();
+    return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function proceedQr() {
+    if (creating) return;
     const value = customAmount ? parseInt(customAmount, 10) : amount;
     if (!value || value < 1000) {
       toast.error("ກະລຸນາເລືອກ ຫຼື ໃສ່ຈຳນວນເງິນ (ຢ່າງໜ້ອຍ 1,000 ₭)");
       return;
     }
+    setCreating(true);
     try {
       const res = await create({ data: { amount: value } });
       setRequest(res.request);
       setStep("qr");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "ເກີດຂໍ້ຜິດພາດ");
+    } finally {
+      setCreating(false);
     }
   }
 
-  async function handleCancel(next: Step = "choose") {
+  /** Closes the current request and resets every field back to a fresh start. */
+  async function resetFlow(next: Step = "amount") {
     if (request) {
       try { await cancel({ data: { id: request.id } }); } catch { /* ignore */ }
     }
     setRequest(null);
+    setAmount(0);
+    setCustomAmount("");
     setStep(next);
   }
 
@@ -137,9 +152,10 @@ function TopupFlow() {
   if (step === "qr" && request) {
     return (
       <QrStep
+        key={request.id}
         request={request}
-        onExpire={() => handleCancel("amount")}
-        onDone={() => handleCancel("amount")}
+        onExpire={() => resetFlow("amount")}
+        onDone={() => resetFlow("amount")}
       />
     );
   }
@@ -152,6 +168,7 @@ function TopupFlow() {
         setAmount={setAmount}
         customAmount={customAmount}
         setCustomAmount={setCustomAmount}
+        creating={creating}
         onBack={() => setStep("choose")}
         onNext={proceedQr}
       />
@@ -198,7 +215,7 @@ function ChooseMethod({ onQr }: { onQr: () => void }) {
 
 
 function AmountStep({
-  amount, setAmount, customAmount, setCustomAmount, onBack, onNext,
+  amount, setAmount, customAmount, setCustomAmount, onBack, onNext, creating,
 }: {
   amount: number;
   setAmount: (v: number) => void;
@@ -206,6 +223,7 @@ function AmountStep({
   setCustomAmount: (v: string) => void;
   onBack: () => void;
   onNext: () => void;
+  creating?: boolean;
 }) {
   return (
     <div className="px-4 space-y-4">
@@ -244,7 +262,9 @@ function AmountStep({
         </div>
       </div>
 
-      <Button onClick={onNext} className="w-full btn-neon">ສ້າງ QR Code</Button>
+      <Button onClick={onNext} disabled={creating} className="w-full btn-neon">
+        {creating ? <><Loader2 className="size-4 animate-spin mr-2" /> ກຳລັງສ້າງ...</> : "ສ້າງ QR Code"}
+      </Button>
     </div>
   );
 }
