@@ -262,7 +262,9 @@ function AmountStep({
         </div>
       </div>
 
-      <Button onClick={onNext} className="w-full btn-neon">ສ້າງ QR Code</Button>
+      <Button onClick={onNext} disabled={creating} className="w-full btn-neon">
+        {creating ? <><Loader2 className="size-4 animate-spin mr-2" /> ກຳລັງສ້າງ...</> : "ສ້າງ QR Code"}
+      </Button>
     </div>
   );
 }
