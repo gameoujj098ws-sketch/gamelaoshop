@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { MessageCircle } from "lucide-react";
+import { useMarkAllRead } from "@/hooks/use-unread";
 
 interface Msg { id: string; title: string | null; body: string; created_at: string; read_at: string | null }
 
