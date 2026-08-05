@@ -14,11 +14,13 @@ import {
   User, Wallet, MessageCircle, History, LogIn, Settings, LogOut, Shield, Plus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useUnreadCount } from "@/hooks/use-unread";
 
 export function ProfileMenu({ username }: { username: string }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isAdmin } = useAuth();
+  const unread = useUnreadCount();
 
   async function handleLogout() {
     await qc.cancelQueries();
@@ -38,6 +40,9 @@ export function ProfileMenu({ username }: { username: string }) {
           className="relative size-9 rounded-full bg-gradient-to-br from-accent to-primary grid place-items-center text-white font-bold text-sm neon-glow cursor-pointer"
         >
           {initial}
+          {unread > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 size-3 rounded-full bg-destructive ring-2 ring-background" />
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-surface-2 border-border">
@@ -48,7 +53,14 @@ export function ProfileMenu({ username }: { username: string }) {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate({ to: "/messages" })}>
           <MessageCircle /> ຂໍ້ຄວາມ
+          {unread > 0 && (
+            <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-bold text-destructive">
+              <span className="size-2 rounded-full bg-destructive" />
+              {unread}
+            </span>
+          )}
         </DropdownMenuItem>
+
         <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
           <User /> ໂປຣຟາຍ
         </DropdownMenuItem>
