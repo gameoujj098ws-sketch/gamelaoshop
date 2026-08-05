@@ -442,7 +442,10 @@ export type Database = {
           bank_account_number: string | null
           bank_name: string | null
           bank_qr_image_url: string | null
+          contact_discord: string | null
+          contact_facebook: string | null
           contact_info: string | null
+          contact_whatsapp: string | null
           id: number
           logo_url: string | null
           primary_color: string | null
@@ -459,7 +462,10 @@ export type Database = {
           bank_account_number?: string | null
           bank_name?: string | null
           bank_qr_image_url?: string | null
+          contact_discord?: string | null
+          contact_facebook?: string | null
           contact_info?: string | null
+          contact_whatsapp?: string | null
           id?: number
           logo_url?: string | null
           primary_color?: string | null
@@ -476,7 +482,10 @@ export type Database = {
           bank_account_number?: string | null
           bank_name?: string | null
           bank_qr_image_url?: string | null
+          contact_discord?: string | null
+          contact_facebook?: string | null
           contact_info?: string | null
+          contact_whatsapp?: string | null
           id?: number
           logo_url?: string | null
           primary_color?: string | null
