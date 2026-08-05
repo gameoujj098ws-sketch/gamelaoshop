@@ -14,6 +14,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -49,6 +50,11 @@ const HomeRoute = HomeRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CardsRoute = CardsRouteImport.update({
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
+  '/contact': typeof ContactRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/redeem': typeof RedeemRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
+  '/contact': typeof ContactRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/redeem': typeof RedeemRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
+  '/contact': typeof ContactRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/redeem': typeof RedeemRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/cards'
+    | '/contact'
     | '/history'
     | '/home'
     | '/redeem'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/cards'
+    | '/contact'
     | '/history'
     | '/home'
     | '/redeem'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/cards'
+    | '/contact'
     | '/history'
     | '/home'
     | '/redeem'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CardsRoute: typeof CardsRoute
+  ContactRoute: typeof ContactRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
   RedeemRoute: typeof RedeemRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cards': {
@@ -368,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CardsRoute: CardsRoute,
+  ContactRoute: ContactRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
   RedeemRoute: RedeemRoute,
