@@ -20,12 +20,16 @@ export const Route = createFileRoute("/_authenticated/messages")({
 
 function MessagesPage() {
   const { user } = useAuth();
+  const markAllRead = useMarkAllRead();
   const [items, setItems] = useState<Msg[]>([]);
   useEffect(() => {
     if (!user) return;
     supabase.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
       setItems((data ?? []) as Msg[]);
+      // Opening this page clears the red dot; new messages bring it back.
+      void markAllRead();
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
   return (
     <div className="px-4 space-y-3">
