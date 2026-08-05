@@ -348,6 +348,12 @@ export const adminSaveSettings = createServerFn({ method: "POST" })
         slide_images: z.array(z.string().max(500)).max(30).optional(),
         slide_interval: z.number().int().min(1).max(60).optional(),
         ad_images: z.array(z.string().max(500)).max(30).optional(),
+        store_slide_images: z.array(z.string().max(500)).max(30).optional(),
+        store_notice_1: z.string().max(500).nullable().optional(),
+        store_notice_2: z.string().max(500).nullable().optional(),
+        contact_facebook: z.string().max(500).nullable().optional(),
+        contact_discord: z.string().max(500).nullable().optional(),
+        contact_whatsapp: z.string().max(500).nullable().optional(),
       })
       .parse(raw),
   )

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  User, Wallet, MessageCircle, History, LogIn, Settings, LogOut, Shield, Plus,
+  User, Wallet, MessageCircle, History, LogIn, Settings, LogOut, Shield, Plus, Headphones,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUnreadCount } from "@/hooks/use-unread";
@@ -72,6 +72,9 @@ export function ProfileMenu({ username }: { username: string }) {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate({ to: "/history", search: { tab: "login" } })}>
           <LogIn /> ປະຫວັດການເຂົ້າອື່ນໆ
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate({ to: "/contact" })}>
+          <Headphones className="text-primary" /> ຕິດຕໍ່ພວກເຮົາ
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
           <Settings /> ຕັ້ງຄ່າທົ່ວໄປ

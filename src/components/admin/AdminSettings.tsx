@@ -19,12 +19,19 @@ interface S {
   slide_images: string[];
   slide_interval: number;
   ad_images: string[];
+  store_notice_1: string | null;
+  store_notice_2: string | null;
+  contact_facebook: string | null;
+  contact_discord: string | null;
+  contact_whatsapp: string | null;
 }
 
 const EMPTY: S = {
   bank_account_name: "", bank_account_number: "", bank_name: "",
   bank_qr_image_url: "", contact_info: "", primary_color: "",
   logo_url: "", slide_images: [], slide_interval: 4, ad_images: [],
+  store_notice_1: "", store_notice_2: "",
+  contact_facebook: "", contact_discord: "", contact_whatsapp: "",
 };
 
 export function AdminSettings() {
@@ -152,6 +159,19 @@ export function AdminSettings() {
           onChange={(e) => setS({ ...s, slide_interval: Math.max(1, Math.min(60, parseInt(e.target.value || "4", 10))) })}
           className="mt-1"
         />
+      </div>
+
+      <div className="rounded-xl border border-border/60 p-3 space-y-3">
+        <div className="text-sm font-bold">ຊ່ອງປະກາດ (ໜ້າຫຼັກສິນຄ້າທົ່ວໄປ)</div>
+        {field("store_notice_1", "ຂໍ້ຄວາມປະກາດ 1")}
+        {field("store_notice_2", "ຂໍ້ຄວາມປະກາດ 2")}
+      </div>
+
+      <div className="rounded-xl border border-border/60 p-3 space-y-3">
+        <div className="text-sm font-bold">ຊ່ອງທາງຕິດຕໍ່</div>
+        {field("contact_facebook", "ລິ້ງ Facebook")}
+        {field("contact_discord", "ລິ້ງ Discord")}
+        {field("contact_whatsapp", "ລິ້ງ WhatsApp")}
       </div>
 
       {imageList("ad_images", "ຮູບໂຄສະນາ (Popup)", "ເດ້ງຂຶ້ນເມື່ອເຂົ້າໜ້າແລກ")}
