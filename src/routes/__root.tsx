@@ -52,6 +52,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "google-site-verification", content: "Lg96BUnUJLYLAeKjP6Q9Z8LY39o1eOJPrtf_t5T29wE" },
       { title: "Game Lao Shop" },
       { name: "description", content: "ເຕີນເກມ" },
       { property: "og:title", content: "Game Lao Shop" },
