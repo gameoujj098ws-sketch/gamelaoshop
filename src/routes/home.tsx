@@ -71,7 +71,7 @@ function StoreHomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const visible = prods.filter((p) => (cat ? p.category_id === cat : !p.is_hidden));
+  const visible = prods.filter((p) => !p.is_hidden);
   const discount = (p: Prod) =>
     p.original_price && p.original_price > p.price
       ? Math.round(((p.original_price - p.price) / p.original_price) * 100)
@@ -110,17 +110,12 @@ function StoreHomePage() {
             <p className="text-xs text-muted-foreground">ຍັງບໍ່ມີໝວດໝູ່ — ແອດມິນຍັງບໍ່ໄດ້ເພີ່ມ</p>
           ) : (
             <div className="space-y-3">
-              <button
-                onClick={() => setCat(null)}
-                className={`w-full rounded-2xl border px-4 py-2.5 text-sm font-semibold ${cat === null ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-surface text-muted-foreground"}`}
-              >
-                ທັງໝົດ
-              </button>
               {cats.map((c) => (
-                <button
+                <Link
                   key={c.id}
-                  onClick={() => setCat(c.id)}
-                  className={`w-full card-tile overflow-hidden text-left ${cat === c.id ? "ring-2 ring-primary" : ""}`}
+                  to="/category/$id"
+                  params={{ id: c.id }}
+                  className="block w-full card-tile overflow-hidden text-left"
                 >
                   {c.image_url && (
                     <div className="relative m-2 rounded-2xl overflow-hidden">
@@ -133,15 +128,16 @@ function StoreHomePage() {
                   <div className="px-4 pb-3 pt-1 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-base font-extrabold truncate">{c.name}</div>
-                      <div className="text-xs text-muted-foreground truncate">{c.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">ກົດເພື່ອເບິ່ງສິນຄ້າໃນໝວດໝູ່ນີ້</div>
                     </div>
                     <span className="grid place-items-center size-10 rounded-xl bg-primary/10 shrink-0">
                       <ShoppingBag className="size-4 text-primary" />
                     </span>
                   </div>
-                </button>
+                </Link>
               ))}
             </div>
+
           )}
         </div>
 
