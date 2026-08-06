@@ -308,25 +308,53 @@ function HistoryPage() {
       </div>
 
       <Dialog open={!!detailOrder} onOpenChange={(v) => !v && setDetailOrder(null)}>
-        <DialogContent className="bg-surface-2 border-border max-w-sm">
-          <DialogHeader><DialogTitle>ລາຍລະອຽດການເຕີມເກມ</DialogTitle></DialogHeader>
+        <DialogContent className="bg-surface-2 border-border max-w-sm p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0"><DialogTitle>ໃບບິນການເຕີມເກມ</DialogTitle></DialogHeader>
           {detailOrder && (
-            <div className="space-y-2">
-              <div className="flex justify-end"><Badge status={detailOrder.status} /></div>
-              <Row k="ເກມ" v={detailOrder.category_name ?? "-"} />
-              <Row k="ແພັກເກັດ" v={detailOrder.package_name ?? "-"} />
-              <Row k="ລາຄາ" v={`${formatKip(detailOrder.price)} ₭`} />
-              {detailOrder.inputs && Object.entries(detailOrder.inputs).map(([k, v]) => <Row key={k} k={k} v={String(v)} />)}
-              <Row k="ວັນທີສັ່ງຊື້" v={`${formatDateTime(detailOrder.created_at)} (${timeAgo(detailOrder.created_at)})`} />
-              {detailOrder.status !== "pending" && <Row k="ວັນທີດຳເນີນການ" v={formatDateTime(detailOrder.updated_at)} />}
-              {detailOrder.admin_message && <Row k="ໝາຍເຫດຈາກແອດມິນ" v={detailOrder.admin_message} />}
-              {detailOrder.status === "rejected" && (
-                <p className="text-xs text-destructive pt-1">ເງິນຈຳນວນ {formatKip(detailOrder.price)} ₭ ຖືກຄືນເຂົ້າກະເປົາຂອງທ່ານແລ້ວ</p>
-              )}
+            <div className="p-4 pt-2">
+              <div className="rounded-3xl border border-border/60 bg-surface p-4 space-y-3">
+                {/* Product image + name */}
+                <div className="flex flex-col items-center gap-2 pb-2 border-b border-dashed border-border/60">
+                  {(() => {
+                    const img =
+                      (detailOrder.package_id && imgMap[detailOrder.package_id]) ||
+                      (detailOrder.card_package_id && imgMap[detailOrder.card_package_id]) ||
+                      null;
+                    return img ? (
+                      <img src={img} alt={detailOrder.category_name ?? "ສິນຄ້າ"} className="size-20 rounded-2xl object-cover" />
+                    ) : (
+                      <div className="grid place-items-center size-20 rounded-2xl bg-primary/10">
+                        <Gamepad2 className="size-8 text-primary" />
+                      </div>
+                    );
+                  })()}
+                  <div className="text-base font-extrabold text-center">{detailOrder.category_name ?? "-"}</div>
+                  <Badge status={detailOrder.status} />
+                </div>
+
+                <ReceiptRow k="ເລກອ້າງອີງ" v={detailOrder.id.slice(0, 8).toUpperCase()} copy />
+                <ReceiptRow k="ແພັກເກັດ" v={detailOrder.package_name ?? "-"} />
+                {detailOrder.inputs &&
+                  Object.entries(detailOrder.inputs).map(([k, v]) => (
+                    <ReceiptRow key={k} k={k} v={String(v)} copy />
+                  ))}
+                <ReceiptRow k="ລາຄາ" v={`${formatKip(detailOrder.price)} ₭`} />
+                <ReceiptRow k="ວັນທີ / ເວລາ" v={formatDateTimeFull(detailOrder.created_at)} />
+                {detailOrder.status !== "pending" && (
+                  <ReceiptRow k="ດຳເນີນການເມື່ອ" v={formatDateTimeFull(detailOrder.updated_at)} />
+                )}
+                {detailOrder.admin_message && <ReceiptRow k="ໝາຍເຫດຈາກແອດມິນ" v={detailOrder.admin_message} />}
+                {detailOrder.status === "rejected" && (
+                  <p className="text-xs text-destructive pt-1">
+                    ເງິນຈຳນວນ {formatKip(detailOrder.price)} ₭ ຖືກຄືນເຂົ້າກະເປົາຂອງທ່ານແລ້ວ
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
 
       <Dialog open={!!detailTopup} onOpenChange={(v) => !v && setDetailTopup(null)}>
         <DialogContent className="bg-surface-2 border-border max-w-sm">
