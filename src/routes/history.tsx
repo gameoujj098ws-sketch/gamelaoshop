@@ -135,6 +135,7 @@ function HistoryPage() {
   const [detailTopup, setDetailTopup] = useState<TopupRow | null>(null);
   const [detailStore, setDetailStore] = useState<StoreRow | null>(null);
   const [walletFilter, setWalletFilter] = useState<"approved" | "rejected">("approved");
+  const [imgMap, setImgMap] = useState<Record<string, string>>({});
 
   const userId = session?.user?.id;
 
@@ -150,14 +151,34 @@ function HistoryPage() {
         supabase.from("store_orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
       ]);
       if (!alive) return;
-      setOrders((o.data ?? []) as unknown as OrderRow[]);
+      const orderRows = (o.data ?? []) as unknown as OrderRow[];
+      const storeRows = (s.data ?? []) as unknown as StoreRow[];
+      setOrders(orderRows);
       setTopups((t.data ?? []) as unknown as TopupRow[]);
       setLogins((l.data ?? []) as unknown as LoginRow[]);
-      setStoreOrders((s.data ?? []) as unknown as StoreRow[]);
+      setStoreOrders(storeRows);
       setLoading(false);
+
+      // Thumbnails for the receipt dialogs: game packages, card packages and
+      // general-store products.
+      const pkgIds = [...new Set(orderRows.map((r) => r.package_id).filter(Boolean))] as string[];
+      const cardIds = [...new Set(orderRows.map((r) => r.card_package_id).filter(Boolean))] as string[];
+      const prodIds = [...new Set(storeRows.map((r) => r.product_id).filter(Boolean))] as string[];
+      const [pk, ck, pr] = await Promise.all([
+        pkgIds.length ? supabase.from("packages").select("id, image_url").in("id", pkgIds) : Promise.resolve({ data: [] as any[] }),
+        cardIds.length ? supabase.from("card_packages").select("id, image_url").in("id", cardIds) : Promise.resolve({ data: [] as any[] }),
+        prodIds.length ? supabase.from("store_products").select("id, image_url").in("id", prodIds) : Promise.resolve({ data: [] as any[] }),
+      ]);
+      if (!alive) return;
+      const next: Record<string, string> = {};
+      for (const row of [...(pk.data ?? []), ...(ck.data ?? []), ...(pr.data ?? [])] as any[]) {
+        if (row?.image_url) next[row.id as string] = row.image_url as string;
+      }
+      setImgMap(next);
     })();
     return () => { alive = false; };
   }, [userId]);
+
 
 
   if (authLoading) return <AppShell><div className="grid place-items-center py-16"><Loader2 className="size-5 animate-spin text-primary" /></div></AppShell>;
