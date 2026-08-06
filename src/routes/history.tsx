@@ -38,6 +38,7 @@ interface OrderRow {
   id: string; category_name: string | null; package_name: string | null; price: number;
   inputs: Record<string, string> | null; status: string; admin_message: string | null;
   created_at: string; updated_at: string;
+  package_id: string | null; card_package_id: string | null;
 }
 interface TopupRow {
   id: string; amount: number; status: string;
@@ -45,10 +46,49 @@ interface TopupRow {
   verified_ref: string | null; verified_at: string | null; created_at: string; expires_at: string;
 }
 interface StoreRow {
-  id: string; product_name: string | null; price: number; qty: number;
+  id: string; product_id: string | null; product_name: string | null; price: number; qty: number;
   codes: string[] | null; status: string; created_at: string;
 }
 interface LoginRow { id: string; ip: string | null; user_agent: string | null; created_at: string }
+
+/** Small inline copy-to-clipboard button used in the receipt dialogs. */
+function CopyButton({ value, label }: { value: string; label?: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setDone(true);
+          toast.success("ຄັດລອກແລ້ວ");
+          setTimeout(() => setDone(false), 1500);
+        } catch {
+          toast.error("ຄັດລອກບໍ່ໄດ້");
+        }
+      }}
+      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary shrink-0"
+    >
+      {done ? <Check className="size-3" /> : <Copy className="size-3" />}
+      {label ?? "ຄັດລອກ"}
+    </button>
+  );
+}
+
+/** Receipt line with an optional copy action for the value. */
+function ReceiptRow({ k, v, copy }: { k: string; v: string; copy?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2 border-b border-border/40 py-2 last:border-0">
+      <span className="text-xs text-muted-foreground shrink-0">{k}</span>
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-right text-sm font-semibold break-all">{v}</span>
+        {copy && v !== "-" && <CopyButton value={v} label="" />}
+      </div>
+    </div>
+  );
+}
+
+
 
 
 function statusMeta(status: string) {
