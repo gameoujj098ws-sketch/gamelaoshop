@@ -29,3 +29,12 @@ export function timeAgo(iso: string | null | undefined): string {
   if (mo < 12) return `${mo} ເດືອນກ່ອນ`;
   return `${Math.floor(mo / 12)} ປີກ່ອນ`;
 }
+
+/** Full date-time with seconds, e.g. 30/07/2026 11:26:42 */
+export function formatDateTimeFull(iso: string | null | undefined): string {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "-";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
