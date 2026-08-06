@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { formatKip, formatDateTime, timeAgo } from "@/lib/format";
+import { formatKip, formatDateTime, formatDateTimeFull, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Wallet, Gamepad2, LogIn, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, Wallet, Gamepad2, LogIn, ShoppingBag, Copy, Check } from "lucide-react";
+
 
 export const Route = createFileRoute("/history")({
   head: () => ({
