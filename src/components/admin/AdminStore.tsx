@@ -289,6 +289,39 @@ export function AdminStore() {
                 <p className="text-[10px] text-muted-foreground mt-1">ໃສ່ 4 ແຖວ = ສະຕ໊ອກ 4 ຊິ້ນ ລູກຄ້າຊື້ແລ້ວໄດ້ຮັບລະຫັດທັນທີ</p>
               </div>
 
+              {/* Repeat stock — same text added N times (loot-box style) */}
+              <div className="rounded-2xl border border-border/60 bg-surface p-3 space-y-2">
+                <Label className="text-xs">ເພີ່ມສະຕ໊ອກແບບຊ້ຳ (ສຳລັບກ່ອງສຸ່ມ)</Label>
+                <Input value={repeatText} placeholder="ຕົວຢ່າງ: ເກືອ ຫຼື TrueID"
+                  onChange={(e) => setRepeatText(e.target.value)} />
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <Label className="text-[11px] text-muted-foreground">ຈຳນວນ</Label>
+                    <Input className="mt-1" type="number" min={1} max={500} value={repeatQty}
+                      onChange={(e) => setRepeatQty(Math.max(1, Math.min(500, parseInt(e.target.value || "1", 10))))} />
+                  </div>
+                  <Button variant="outline" className="h-9" disabled={busy || !repeatText.trim()}
+                    onClick={async () => {
+                      setBusy(true);
+                      try {
+                        const lines = Array.from({ length: repeatQty }, () => repeatText.trim());
+                        const res = await addStock({ data: { product_id: stockFor.id, codes: lines, qty: 0 } });
+                        toast.success(`ເພີ່ມແລ້ວ +${res.added} (ລວມ ${res.stock})`);
+                        setRepeatText("");
+                        setRepeatQty(1);
+                        await refresh();
+                        const c = await listCodes({ data: { product_id: stockFor.id } });
+                        setCodes(c.codes as CodeRow[]);
+                        setStockFor({ ...stockFor, stock: res.stock });
+                      } catch (e) { toast.error(e instanceof Error ? e.message : "ຜິດພາດ"); } finally { setBusy(false); }
+                    }}>
+                    <Plus className="size-4 mr-1" /> ເພີ່ມຊ້ຳ
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground">ໃສ່ຄຳວ່າ “ເກືອ” + ຈຳນວນ 10 = ໄດ້ 10 ຊິ້ນຄືກັນ</p>
+              </div>
+
+
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <Label className="text-xs">ຫຼື ເພີ່ມຈຳນວນລ້າໆ (ບໍ່ມີລະຫັດ)</Label>
