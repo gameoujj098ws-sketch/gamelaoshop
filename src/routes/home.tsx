@@ -30,7 +30,7 @@ interface Prod {
   stock: number; is_hidden: boolean;
 }
 interface Feed {
-  recent: { id: string; product_name: string; price: number; qty: number; created_at: string; username: string; image_url: string | null }[];
+  recent: { id: string; kind: "store" | "game"; product_name: string; price: number; qty: number; created_at: string; username: string; image_url: string | null }[];
   top: { rank: number; username: string; total: number; count: number }[];
 }
 
@@ -41,9 +41,9 @@ function StoreHomePage() {
   const [notices, setNotices] = useState<string[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [prods, setProds] = useState<Prod[]>([]);
-  const [cat, setCat] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [feed, setFeed] = useState<Feed>({ recent: [], top: [] });
+
 
   useEffect(() => {
     let alive = true;
