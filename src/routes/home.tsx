@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStorefrontFeed } from "@/lib/storefront.functions";
 import { formatKip } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Loader2, Megaphone, ShoppingCart, ShoppingBag, Crown, Trophy, Clock, Package } from "lucide-react";
+import { Loader2, Megaphone, ShoppingCart, ShoppingBag, Crown, Trophy, Clock, Package, Gamepad2 } from "lucide-react";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -211,35 +211,40 @@ function StoreHomePage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-extrabold">ລາຍການສັ່ງຊື້ລ່າສຸດ</div>
-                <div className="text-[11px] text-muted-foreground">ສິນຄ້າທົ່ວໄປ (24 ຊົ່ວໂມງ)</div>
+                <div className="text-[11px] text-muted-foreground">ທຸກລາຍການ (24 ຊົ່ວໂມງ)</div>
               </div>
-              <span className="rounded-full bg-success px-2.5 py-1 text-[10px] font-bold text-white">LIVE</span>
+              <span className="rounded-full bg-success px-2.5 py-1 text-[10px] font-bold text-success-foreground">LIVE</span>
             </div>
             {feed.recent.length === 0 ? (
               <p className="p-4 text-xs text-muted-foreground">ຍັງບໍ່ມີການສັ່ງຊື້ໃນ 24 ຊົ່ວໂມງຜ່ານມາ</p>
             ) : (
-              <div className="flex gap-2 overflow-x-auto p-3">
-                {feed.recent.map((r) => (
-                  <div key={r.id} className="w-56 shrink-0 rounded-2xl border border-border/60 bg-surface p-2.5 flex gap-2">
-                    {r.image_url ? (
-                      <img src={r.image_url} alt={r.product_name} className="size-11 rounded-xl object-cover shrink-0" />
-                    ) : (
-                      <div className="size-11 rounded-xl bg-primary/10 shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[12px] font-bold truncate">{r.product_name}</div>
-                      <div className="text-[11px] text-muted-foreground truncate">ທ່ານ: {r.username}</div>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                          <Clock className="size-3" /> {timeAgo(r.created_at)}
-                        </span>
-                        <span className="text-[11px] font-bold text-primary">{formatKip(r.price)} ₭</span>
+              <div className="overflow-hidden p-3">
+                <div className="marquee-row gap-2">
+                  {[...feed.recent, ...feed.recent].map((r, i) => (
+                    <div key={`${r.id}-${i}`} className="w-56 shrink-0 rounded-2xl border border-border/60 bg-surface p-2.5 flex gap-2">
+                      {r.image_url ? (
+                        <img src={r.image_url} alt={r.product_name} className="size-11 rounded-xl object-cover shrink-0" />
+                      ) : (
+                        <div className="size-11 rounded-xl bg-primary/10 shrink-0 grid place-items-center">
+                          {r.kind === "game" ? <Gamepad2 className="size-4 text-primary" /> : <ShoppingBag className="size-4 text-primary" />}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[12px] font-bold truncate">{r.product_name}</div>
+                        <div className="text-[11px] text-muted-foreground truncate">ທ່ານ: {r.username}</div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <Clock className="size-3" /> {timeAgo(r.created_at)}
+                          </span>
+                          <span className="text-[11px] font-bold text-primary">{formatKip(r.price)} ₭</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
+
           </div>
         </div>
 
