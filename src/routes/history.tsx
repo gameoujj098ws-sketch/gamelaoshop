@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { formatKip, formatDateTime, timeAgo } from "@/lib/format";
+import { formatKip, formatDateTime, formatDateTimeFull, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Wallet, Gamepad2, LogIn, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, Wallet, Gamepad2, LogIn, ShoppingBag, Copy, Check } from "lucide-react";
+
 
 export const Route = createFileRoute("/history")({
   head: () => ({
@@ -36,6 +38,7 @@ interface OrderRow {
   id: string; category_name: string | null; package_name: string | null; price: number;
   inputs: Record<string, string> | null; status: string; admin_message: string | null;
   created_at: string; updated_at: string;
+  package_id: string | null; card_package_id: string | null;
 }
 interface TopupRow {
   id: string; amount: number; status: string;
@@ -43,10 +46,49 @@ interface TopupRow {
   verified_ref: string | null; verified_at: string | null; created_at: string; expires_at: string;
 }
 interface StoreRow {
-  id: string; product_name: string | null; price: number; qty: number;
+  id: string; product_id: string | null; product_name: string | null; price: number; qty: number;
   codes: string[] | null; status: string; created_at: string;
 }
 interface LoginRow { id: string; ip: string | null; user_agent: string | null; created_at: string }
+
+/** Small inline copy-to-clipboard button used in the receipt dialogs. */
+function CopyButton({ value, label }: { value: string; label?: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setDone(true);
+          toast.success("ຄັດລອກແລ້ວ");
+          setTimeout(() => setDone(false), 1500);
+        } catch {
+          toast.error("ຄັດລອກບໍ່ໄດ້");
+        }
+      }}
+      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary shrink-0"
+    >
+      {done ? <Check className="size-3" /> : <Copy className="size-3" />}
+      {label ?? "ຄັດລອກ"}
+    </button>
+  );
+}
+
+/** Receipt line with an optional copy action for the value. */
+function ReceiptRow({ k, v, copy }: { k: string; v: string; copy?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2 border-b border-border/40 py-2 last:border-0">
+      <span className="text-xs text-muted-foreground shrink-0">{k}</span>
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-right text-sm font-semibold break-all">{v}</span>
+        {copy && v !== "-" && <CopyButton value={v} label="" />}
+      </div>
+    </div>
+  );
+}
+
+
 
 
 function statusMeta(status: string) {
@@ -93,6 +135,7 @@ function HistoryPage() {
   const [detailTopup, setDetailTopup] = useState<TopupRow | null>(null);
   const [detailStore, setDetailStore] = useState<StoreRow | null>(null);
   const [walletFilter, setWalletFilter] = useState<"approved" | "rejected">("approved");
+  const [imgMap, setImgMap] = useState<Record<string, string>>({});
 
   const userId = session?.user?.id;
 
@@ -108,14 +151,34 @@ function HistoryPage() {
         supabase.from("store_orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
       ]);
       if (!alive) return;
-      setOrders((o.data ?? []) as unknown as OrderRow[]);
+      const orderRows = (o.data ?? []) as unknown as OrderRow[];
+      const storeRows = (s.data ?? []) as unknown as StoreRow[];
+      setOrders(orderRows);
       setTopups((t.data ?? []) as unknown as TopupRow[]);
       setLogins((l.data ?? []) as unknown as LoginRow[]);
-      setStoreOrders((s.data ?? []) as unknown as StoreRow[]);
+      setStoreOrders(storeRows);
       setLoading(false);
+
+      // Thumbnails for the receipt dialogs: game packages, card packages and
+      // general-store products.
+      const pkgIds = [...new Set(orderRows.map((r) => r.package_id).filter(Boolean))] as string[];
+      const cardIds = [...new Set(orderRows.map((r) => r.card_package_id).filter(Boolean))] as string[];
+      const prodIds = [...new Set(storeRows.map((r) => r.product_id).filter(Boolean))] as string[];
+      const [pk, ck, pr] = await Promise.all([
+        pkgIds.length ? supabase.from("packages").select("id, image_url").in("id", pkgIds) : Promise.resolve({ data: [] as any[] }),
+        cardIds.length ? supabase.from("card_packages").select("id, image_url").in("id", cardIds) : Promise.resolve({ data: [] as any[] }),
+        prodIds.length ? supabase.from("store_products").select("id, image_url").in("id", prodIds) : Promise.resolve({ data: [] as any[] }),
+      ]);
+      if (!alive) return;
+      const next: Record<string, string> = {};
+      for (const row of [...(pk.data ?? []), ...(ck.data ?? []), ...(pr.data ?? [])] as any[]) {
+        if (row?.image_url) next[row.id as string] = row.image_url as string;
+      }
+      setImgMap(next);
     })();
     return () => { alive = false; };
   }, [userId]);
+
 
 
   if (authLoading) return <AppShell><div className="grid place-items-center py-16"><Loader2 className="size-5 animate-spin text-primary" /></div></AppShell>;
@@ -245,25 +308,53 @@ function HistoryPage() {
       </div>
 
       <Dialog open={!!detailOrder} onOpenChange={(v) => !v && setDetailOrder(null)}>
-        <DialogContent className="bg-surface-2 border-border max-w-sm">
-          <DialogHeader><DialogTitle>ລາຍລະອຽດການເຕີມເກມ</DialogTitle></DialogHeader>
+        <DialogContent className="bg-surface-2 border-border max-w-sm p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0"><DialogTitle>ໃບບິນການເຕີມເກມ</DialogTitle></DialogHeader>
           {detailOrder && (
-            <div className="space-y-2">
-              <div className="flex justify-end"><Badge status={detailOrder.status} /></div>
-              <Row k="ເກມ" v={detailOrder.category_name ?? "-"} />
-              <Row k="ແພັກເກັດ" v={detailOrder.package_name ?? "-"} />
-              <Row k="ລາຄາ" v={`${formatKip(detailOrder.price)} ₭`} />
-              {detailOrder.inputs && Object.entries(detailOrder.inputs).map(([k, v]) => <Row key={k} k={k} v={String(v)} />)}
-              <Row k="ວັນທີສັ່ງຊື້" v={`${formatDateTime(detailOrder.created_at)} (${timeAgo(detailOrder.created_at)})`} />
-              {detailOrder.status !== "pending" && <Row k="ວັນທີດຳເນີນການ" v={formatDateTime(detailOrder.updated_at)} />}
-              {detailOrder.admin_message && <Row k="ໝາຍເຫດຈາກແອດມິນ" v={detailOrder.admin_message} />}
-              {detailOrder.status === "rejected" && (
-                <p className="text-xs text-destructive pt-1">ເງິນຈຳນວນ {formatKip(detailOrder.price)} ₭ ຖືກຄືນເຂົ້າກະເປົາຂອງທ່ານແລ້ວ</p>
-              )}
+            <div className="p-4 pt-2">
+              <div className="rounded-3xl border border-border/60 bg-surface p-4 space-y-3">
+                {/* Product image + name */}
+                <div className="flex flex-col items-center gap-2 pb-2 border-b border-dashed border-border/60">
+                  {(() => {
+                    const img =
+                      (detailOrder.package_id && imgMap[detailOrder.package_id]) ||
+                      (detailOrder.card_package_id && imgMap[detailOrder.card_package_id]) ||
+                      null;
+                    return img ? (
+                      <img src={img} alt={detailOrder.category_name ?? "ສິນຄ້າ"} className="size-20 rounded-2xl object-cover" />
+                    ) : (
+                      <div className="grid place-items-center size-20 rounded-2xl bg-primary/10">
+                        <Gamepad2 className="size-8 text-primary" />
+                      </div>
+                    );
+                  })()}
+                  <div className="text-base font-extrabold text-center">{detailOrder.category_name ?? "-"}</div>
+                  <Badge status={detailOrder.status} />
+                </div>
+
+                <ReceiptRow k="ເລກອ້າງອີງ" v={detailOrder.id.slice(0, 8).toUpperCase()} copy />
+                <ReceiptRow k="ແພັກເກັດ" v={detailOrder.package_name ?? "-"} />
+                {detailOrder.inputs &&
+                  Object.entries(detailOrder.inputs).map(([k, v]) => (
+                    <ReceiptRow key={k} k={k} v={String(v)} copy />
+                  ))}
+                <ReceiptRow k="ລາຄາ" v={`${formatKip(detailOrder.price)} ₭`} />
+                <ReceiptRow k="ວັນທີ / ເວລາ" v={formatDateTimeFull(detailOrder.created_at)} />
+                {detailOrder.status !== "pending" && (
+                  <ReceiptRow k="ດຳເນີນການເມື່ອ" v={formatDateTimeFull(detailOrder.updated_at)} />
+                )}
+                {detailOrder.admin_message && <ReceiptRow k="ໝາຍເຫດຈາກແອດມິນ" v={detailOrder.admin_message} />}
+                {detailOrder.status === "rejected" && (
+                  <p className="text-xs text-destructive pt-1">
+                    ເງິນຈຳນວນ {formatKip(detailOrder.price)} ₭ ຖືກຄືນເຂົ້າກະເປົາຂອງທ່ານແລ້ວ
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
 
       <Dialog open={!!detailTopup} onOpenChange={(v) => !v && setDetailTopup(null)}>
         <DialogContent className="bg-surface-2 border-border max-w-sm">
@@ -292,26 +383,47 @@ function HistoryPage() {
       </Dialog>
 
       <Dialog open={!!detailStore} onOpenChange={(v) => !v && setDetailStore(null)}>
-        <DialogContent className="bg-surface-2 border-border max-w-sm">
-          <DialogHeader><DialogTitle>ລາຍລະອຽດສິນຄ້າທົ່ວໄປ</DialogTitle></DialogHeader>
+        <DialogContent className="bg-surface-2 border-border max-w-sm p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0"><DialogTitle>ໃບບິນສິນຄ້າທົ່ວໄປ</DialogTitle></DialogHeader>
           {detailStore && (
-            <div className="space-y-2">
-              <div className="flex justify-end"><Badge status={detailStore.status} /></div>
-              <Row k="ສິນຄ້າ" v={detailStore.product_name ?? "-"} />
-              <Row k="ຈຳນວນ" v={String(detailStore.qty)} />
-              <Row k="ລາຄາລວມ" v={`${formatKip(detailStore.price)} ₭`} />
-              <Row k="ວັນທີຊື້" v={`${formatDateTime(detailStore.created_at)} (${timeAgo(detailStore.created_at)})`} />
-              {(detailStore.codes ?? []).length > 0 && (
-                <div className="space-y-1 pt-1">
-                  <div className="text-xs text-muted-foreground">ລະຫັດສິນຄ້າທີ່ໄດ້ຮັບ</div>
-                  {(detailStore.codes ?? []).map((c, i) => (
-                    <div key={i} className="rounded-md border border-border/60 px-2 py-1 text-sm break-all">{c}</div>
-                  ))}
+            <div className="p-4 pt-2">
+              <div className="rounded-3xl border border-border/60 bg-surface p-4 space-y-3">
+                <div className="flex flex-col items-center gap-2 pb-2 border-b border-dashed border-border/60">
+                  {detailStore.product_id && imgMap[detailStore.product_id] ? (
+                    <img src={imgMap[detailStore.product_id]!} alt={detailStore.product_name ?? "ສິນຄ້າ"} className="size-20 rounded-2xl object-cover" />
+                  ) : (
+                    <div className="grid place-items-center size-20 rounded-2xl bg-primary/10">
+                      <ShoppingBag className="size-8 text-primary" />
+                    </div>
+                  )}
+                  <div className="text-base font-extrabold text-center">{detailStore.product_name ?? "-"}</div>
+                  <Badge status={detailStore.status} />
                 </div>
-              )}
+
+                <ReceiptRow k="ເລກອ້າງອີງ" v={detailStore.id.slice(0, 8).toUpperCase()} copy />
+                <ReceiptRow k="ຈຳນວນ" v={String(detailStore.qty)} />
+                <ReceiptRow k="ລາຄາລວມ" v={`${formatKip(detailStore.price)} ₭`} />
+                <ReceiptRow k="ວັນທີ / ເວລາ" v={formatDateTimeFull(detailStore.created_at)} />
+
+                {(detailStore.codes ?? []).length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-dashed border-border/60">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs text-muted-foreground">ລະຫັດ / ID ທີ່ໄດ້ຮັບ</div>
+                      <CopyButton value={(detailStore.codes ?? []).join("\n")} label="ຄັດລອກທັງໝົດ" />
+                    </div>
+                    {(detailStore.codes ?? []).map((c, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-surface-2 px-3 py-2">
+                        <span className="text-sm font-semibold break-all">{c}</span>
+                        <CopyButton value={c} label="" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
+
       </Dialog>
     </AppShell>
 

@@ -21,6 +21,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as GameIdRouteImport } from './routes/game.$id'
+import { Route as CategoryIdRouteImport } from './routes/category.$id'
 import { Route as CardIdRouteImport } from './routes/card.$id'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -86,6 +87,11 @@ const GameIdRoute = GameIdRouteImport.update({
   path: '/game/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoryIdRoute = CategoryIdRouteImport.update({
+  id: '/category/$id',
+  path: '/category/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CardIdRoute = CardIdRouteImport.update({
   id: '/card/$id',
   path: '/card/$id',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/card/$id': typeof CardIdRoute
+  '/category/$id': typeof CategoryIdRoute
   '/game/$id': typeof GameIdRoute
   '/product/$id': typeof ProductIdRoute
 }
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/card/$id': typeof CardIdRoute
+  '/category/$id': typeof CategoryIdRoute
   '/game/$id': typeof GameIdRoute
   '/product/$id': typeof ProductIdRoute
 }
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/card/$id': typeof CardIdRoute
+  '/category/$id': typeof CategoryIdRoute
   '/game/$id': typeof GameIdRoute
   '/product/$id': typeof ProductIdRoute
 }
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/card/$id'
+    | '/category/$id'
     | '/game/$id'
     | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/card/$id'
+    | '/category/$id'
     | '/game/$id'
     | '/product/$id'
   id:
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/card/$id'
+    | '/category/$id'
     | '/game/$id'
     | '/product/$id'
   fileRoutesById: FileRoutesById
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopupRoute: typeof TopupRoute
   CardIdRoute: typeof CardIdRoute
+  CategoryIdRoute: typeof CategoryIdRoute
   GameIdRoute: typeof GameIdRoute
   ProductIdRoute: typeof ProductIdRoute
 }
@@ -328,6 +341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/category/$id': {
+      id: '/category/$id'
+      path: '/category/$id'
+      fullPath: '/category/$id'
+      preLoaderRoute: typeof CategoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/card/$id': {
       id: '/card/$id'
       path: '/card/$id'
@@ -395,6 +415,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TopupRoute: TopupRoute,
   CardIdRoute: CardIdRoute,
+  CategoryIdRoute: CategoryIdRoute,
   GameIdRoute: GameIdRoute,
   ProductIdRoute: ProductIdRoute,
 }

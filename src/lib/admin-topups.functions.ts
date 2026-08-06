@@ -22,9 +22,9 @@ export const adminListTopups = createServerFn({ method: "GET" })
     const { data: rows, count, error } = await db
       .from("topup_requests")
       .select("*", { count: "exact" })
-      .not("slip_url", "is", null)
       .order("created_at", { ascending: false })
       .range(from, from + perPage - 1);
+
     if (error) throw new Error(error.message);
 
     const userIds = [...new Set((rows ?? []).map((r: any) => r.user_id))];
