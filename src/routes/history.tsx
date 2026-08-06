@@ -383,26 +383,47 @@ function HistoryPage() {
       </Dialog>
 
       <Dialog open={!!detailStore} onOpenChange={(v) => !v && setDetailStore(null)}>
-        <DialogContent className="bg-surface-2 border-border max-w-sm">
-          <DialogHeader><DialogTitle>ລາຍລະອຽດສິນຄ້າທົ່ວໄປ</DialogTitle></DialogHeader>
+        <DialogContent className="bg-surface-2 border-border max-w-sm p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0"><DialogTitle>ໃບບິນສິນຄ້າທົ່ວໄປ</DialogTitle></DialogHeader>
           {detailStore && (
-            <div className="space-y-2">
-              <div className="flex justify-end"><Badge status={detailStore.status} /></div>
-              <Row k="ສິນຄ້າ" v={detailStore.product_name ?? "-"} />
-              <Row k="ຈຳນວນ" v={String(detailStore.qty)} />
-              <Row k="ລາຄາລວມ" v={`${formatKip(detailStore.price)} ₭`} />
-              <Row k="ວັນທີຊື້" v={`${formatDateTime(detailStore.created_at)} (${timeAgo(detailStore.created_at)})`} />
-              {(detailStore.codes ?? []).length > 0 && (
-                <div className="space-y-1 pt-1">
-                  <div className="text-xs text-muted-foreground">ລະຫັດສິນຄ້າທີ່ໄດ້ຮັບ</div>
-                  {(detailStore.codes ?? []).map((c, i) => (
-                    <div key={i} className="rounded-md border border-border/60 px-2 py-1 text-sm break-all">{c}</div>
-                  ))}
+            <div className="p-4 pt-2">
+              <div className="rounded-3xl border border-border/60 bg-surface p-4 space-y-3">
+                <div className="flex flex-col items-center gap-2 pb-2 border-b border-dashed border-border/60">
+                  {detailStore.product_id && imgMap[detailStore.product_id] ? (
+                    <img src={imgMap[detailStore.product_id]!} alt={detailStore.product_name ?? "ສິນຄ້າ"} className="size-20 rounded-2xl object-cover" />
+                  ) : (
+                    <div className="grid place-items-center size-20 rounded-2xl bg-primary/10">
+                      <ShoppingBag className="size-8 text-primary" />
+                    </div>
+                  )}
+                  <div className="text-base font-extrabold text-center">{detailStore.product_name ?? "-"}</div>
+                  <Badge status={detailStore.status} />
                 </div>
-              )}
+
+                <ReceiptRow k="ເລກອ້າງອີງ" v={detailStore.id.slice(0, 8).toUpperCase()} copy />
+                <ReceiptRow k="ຈຳນວນ" v={String(detailStore.qty)} />
+                <ReceiptRow k="ລາຄາລວມ" v={`${formatKip(detailStore.price)} ₭`} />
+                <ReceiptRow k="ວັນທີ / ເວລາ" v={formatDateTimeFull(detailStore.created_at)} />
+
+                {(detailStore.codes ?? []).length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-dashed border-border/60">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs text-muted-foreground">ລະຫັດ / ID ທີ່ໄດ້ຮັບ</div>
+                      <CopyButton value={(detailStore.codes ?? []).join("\n")} label="ຄັດລອກທັງໝົດ" />
+                    </div>
+                    {(detailStore.codes ?? []).map((c, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-surface-2 px-3 py-2">
+                        <span className="text-sm font-semibold break-all">{c}</span>
+                        <CopyButton value={c} label="" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
+
       </Dialog>
     </AppShell>
 
