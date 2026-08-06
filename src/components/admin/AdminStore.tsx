@@ -58,6 +58,9 @@ export function AdminStore() {
   const [codes, setCodes] = useState<CodeRow[]>([]);
   const [codeText, setCodeText] = useState("");
   const [plainQty, setPlainQty] = useState(1);
+  const [repeatText, setRepeatText] = useState("");
+  const [repeatQty, setRepeatQty] = useState(1);
+
 
   async function refresh() {
     setLoading(true);
