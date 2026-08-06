@@ -134,3 +134,13 @@
   display: inline-block;
   animation: marquee-scroll 18s linear infinite;
 }
+
+/* Horizontal auto-scrolling row (duplicate the children so the loop is seamless). */
+@utility marquee-row {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 45s linear infinite;
+}
+@utility marquee-row-pause {
+  &:hover .marquee-row { animation-play-state: paused; }
+}
