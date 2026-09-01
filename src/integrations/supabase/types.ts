@@ -105,6 +105,48 @@ export type Database = {
           },
         ]
       }
+      card_topups: {
+        Row: {
+          admin_note: string | null
+          card_number: string
+          card_value: number
+          created_at: string
+          credit_amount: number
+          fee_percent: number
+          id: string
+          reviewed_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          card_number: string
+          card_value?: number
+          created_at?: string
+          credit_amount?: number
+          fee_percent?: number
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          card_number?: string
+          card_value?: number
+          created_at?: string
+          credit_amount?: number
+          fee_percent?: number
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -405,6 +447,38 @@ export type Database = {
         }
         Relationships: []
       }
+      redeem_code_uses: {
+        Row: {
+          amount: number
+          code_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          code_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          code_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "redeem_code_uses_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "redeem_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       redeem_codes: {
         Row: {
           amount: number
@@ -412,8 +486,10 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          max_uses: number
           redeemed_at: string | null
           redeemed_by: string | null
+          used_count: number
         }
         Insert: {
           amount: number
@@ -421,8 +497,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          max_uses?: number
           redeemed_at?: string | null
           redeemed_by?: string | null
+          used_count?: number
         }
         Update: {
           amount?: number
@@ -430,8 +508,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          max_uses?: number
           redeemed_at?: string | null
           redeemed_by?: string | null
+          used_count?: number
         }
         Relationships: []
       }
@@ -442,10 +522,15 @@ export type Database = {
           bank_account_number: string | null
           bank_name: string | null
           bank_qr_image_url: string | null
+          card_topup_fee_percent: number
+          card_topup_value: number
           contact_discord: string | null
           contact_facebook: string | null
           contact_info: string | null
           contact_whatsapp: string | null
+          enable_card_topup: boolean
+          enable_code_topup: boolean
+          enable_qr_topup: boolean
           id: number
           logo_url: string | null
           primary_color: string | null
@@ -462,10 +547,15 @@ export type Database = {
           bank_account_number?: string | null
           bank_name?: string | null
           bank_qr_image_url?: string | null
+          card_topup_fee_percent?: number
+          card_topup_value?: number
           contact_discord?: string | null
           contact_facebook?: string | null
           contact_info?: string | null
           contact_whatsapp?: string | null
+          enable_card_topup?: boolean
+          enable_code_topup?: boolean
+          enable_qr_topup?: boolean
           id?: number
           logo_url?: string | null
           primary_color?: string | null
@@ -482,10 +572,15 @@ export type Database = {
           bank_account_number?: string | null
           bank_name?: string | null
           bank_qr_image_url?: string | null
+          card_topup_fee_percent?: number
+          card_topup_value?: number
           contact_discord?: string | null
           contact_facebook?: string | null
           contact_info?: string | null
           contact_whatsapp?: string | null
+          enable_card_topup?: boolean
+          enable_code_topup?: boolean
+          enable_qr_topup?: boolean
           id?: number
           logo_url?: string | null
           primary_color?: string | null
