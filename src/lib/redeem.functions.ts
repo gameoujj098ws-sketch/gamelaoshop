@@ -15,22 +15,50 @@ export const redeemCode = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabaseAdmin
       .from("redeem_codes")
-      .select("id, amount, is_active, redeemed_by")
+      .select("id, amount, is_active, max_uses, used_count")
       .ilike("code", code)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("ໂຄດບໍ່ຖືກຕ້ອງ");
-    if (!row.is_active || row.redeemed_by) throw new Error("ໂຄດນີ້ຖືກໃຊ້ແລ້ວ");
 
-    const { data: claimed, error: claimErr } = await supabaseAdmin
+    const maxUses = Number((row as any).max_uses ?? 1);
+    const usedCount = Number((row as any).used_count ?? 0);
+    if (!row.is_active || usedCount >= maxUses) throw new Error("ໂຄດນີ້ຖືກໃຊ້ຄົບແລ້ວ");
+
+    // One account may only use a given code once.
+    const { error: claimErr } = await supabaseAdmin
+      .from("redeem_code_uses")
+      .insert({ code_id: row.id, user_id: userId, amount: Number(row.amount) });
+    if (claimErr) {
+      if (claimErr.code === "23505") throw new Error("ທ່ານໃຊ້ໂຄດນີ້ແລ້ວ");
+      throw new Error(claimErr.message);
+    }
+
+    const { count } = await supabaseAdmin
+      .from("redeem_code_uses")
+      .select("id", { count: "exact", head: true })
+      .eq("code_id", row.id);
+    const nextCount = count ?? usedCount + 1;
+
+    if (nextCount > maxUses) {
+      // Lost the race — undo the claim and refuse.
+      await supabaseAdmin
+        .from("redeem_code_uses")
+        .delete()
+        .eq("code_id", row.id)
+        .eq("user_id", userId);
+      throw new Error("ໂຄດນີ້ຖືກໃຊ້ຄົບແລ້ວ");
+    }
+
+    await supabaseAdmin
       .from("redeem_codes")
-      .update({ redeemed_by: userId, redeemed_at: new Date().toISOString(), is_active: false })
-      .eq("id", row.id)
-      .is("redeemed_by", null)
-      .select("id")
-      .maybeSingle();
-    if (claimErr) throw new Error(claimErr.message);
-    if (!claimed) throw new Error("ໂຄດນີ້ຖືກໃຊ້ແລ້ວ");
+      .update({
+        used_count: nextCount,
+        is_active: nextCount < maxUses,
+        redeemed_by: userId,
+        redeemed_at: new Date().toISOString(),
+      })
+      .eq("id", row.id);
 
     const { data: prof } = await supabaseAdmin
       .from("profiles")
