@@ -13,7 +13,7 @@ export const submitSlipInput = (raw: unknown) =>
     mime: z.string().regex(/^image\/(png|jpe?g|webp)$/),
   }).parse(raw);
 
-export const TOPUP_EXPIRE_MINUTES = 15;
+export const TOPUP_EXPIRE_MINUTES = 5;
 
 export async function sha256Hex(bytes: Uint8Array) {
   const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
