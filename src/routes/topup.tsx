@@ -178,40 +178,116 @@ function TopupFlow() {
   return <ChooseMethod onQr={() => setStep("amount")} />;
 }
 
+interface ChannelSettings {
+  enable_card_topup: boolean;
+  enable_code_topup: boolean;
+  enable_qr_topup: boolean;
+  card_topup_value: number;
+  card_topup_fee_percent: number;
+}
+
 function ChooseMethod({ onQr }: { onQr: () => void }) {
+  const { profile } = useAuth() as { profile?: { wallet_balance?: number } | null };
+  const [cfg, setCfg] = useState<ChannelSettings | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("site_settings")
+      .select("enable_card_topup, enable_code_topup, enable_qr_topup, card_topup_value, card_topup_fee_percent")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCfg({
+          enable_card_topup: data?.enable_card_topup ?? true,
+          enable_code_topup: data?.enable_code_topup ?? true,
+          enable_qr_topup: data?.enable_qr_topup ?? true,
+          card_topup_value: Number(data?.card_topup_value ?? 10000),
+          card_topup_fee_percent: Number(data?.card_topup_fee_percent ?? 0),
+        });
+      });
+  }, []);
+
+  if (!cfg) {
+    return (
+      <div className="grid place-items-center py-20">
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const none = !cfg.enable_card_topup && !cfg.enable_code_topup && !cfg.enable_qr_topup;
+
   return (
-    <div className="px-4">
-      <div className="card-tile p-2 space-y-2">
-        <div className="rounded-2xl bg-gradient-to-br from-primary to-accent p-5 text-primary-foreground">
-          <h2 className="text-lg font-extrabold">ເລືອກຊ່ອງທາງເຕີມເງິນ</h2>
-          <p className="text-sm opacity-90 mt-1">ເລືອກວິທີເຕີມເງິນທີ່ທ່ານຕ້ອງການ</p>
+    <div className="px-4 space-y-3">
+      <div className="rounded-3xl bg-gradient-to-br from-primary to-accent p-5 text-primary-foreground">
+        <div className="text-xs opacity-90">ຍອດເງິນໃນກະເປົາ</div>
+        <div className="text-2xl font-extrabold mt-1">
+          {formatKip(Number(profile?.wallet_balance ?? 0))} ₭
         </div>
+        <div className="text-xs opacity-90 mt-2">ເລືອກຊ່ອງທາງເຕີມເງິນຂ້າງລຸ່ມ</div>
+      </div>
 
-        <button
-          onClick={onQr}
-          className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-4 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99] cursor-pointer"
-        >
-          <img src={qrIcon.url} alt="QR Code" className="size-20 rounded-xl object-cover shrink-0" />
-          <div className="min-w-0">
-            <div className="font-bold text-base">ເຕີມຜ່ານ QR Code</div>
-            <div className="text-xs text-muted-foreground">ໂອນຜ່ານທະນາຄານ + ແນບສະລິບ</div>
-          </div>
-        </button>
+      {none && (
+        <div className="card-tile p-6 text-center text-sm text-muted-foreground">
+          ຊ່ອງທາງເຕີມເງິນທັງໝົດຖືກປິດຢູ່ໃນເວລານີ້
+        </div>
+      )}
 
-        <Link
-          to="/redeem"
-          className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-4 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99]"
-        >
-          <img src={codeIcon.url} alt="Code" className="size-20 rounded-xl object-cover shrink-0" />
-          <div className="min-w-0">
-            <div className="font-bold text-base">ເຕີມດ້ວຍໂຄດ</div>
-            <div className="text-xs text-muted-foreground">ໃສ່ໂຄດເຕີມເງິນ, ເຂົ້າກະເປົາທັນທີ</div>
-          </div>
-        </Link>
+      <div className="space-y-2">
+        {cfg.enable_card_topup && (
+          <Link
+            to="/topup-card"
+            className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-3 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99]"
+          >
+            <img src={cardIcon} alt="ບັດເຕີມເງິນ" className="size-14 rounded-xl object-cover shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-sm">ບັດເຕີມເງິນ</div>
+              <div className="text-[11px] text-muted-foreground">
+                ໃສ່ເລກບັດ 14 ຕົວ · ມູນຄ່າ {formatKip(cfg.card_topup_value)} ₭
+              </div>
+            </div>
+            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-bold text-destructive shrink-0">
+              ຄ່າທຳນຽມ {cfg.card_topup_fee_percent}%
+            </span>
+          </Link>
+        )}
+
+        {cfg.enable_code_topup && (
+          <Link
+            to="/redeem"
+            className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-3 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99]"
+          >
+            <img src={codeIcon.url} alt="ໂຄດ" className="size-14 rounded-xl object-cover shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-sm">ໃຊ້ໂຄດເຕີມເງິນ</div>
+              <div className="text-[11px] text-muted-foreground">ໃສ່ໂຄດ ເງິນເຂົ້າກະເປົາທັນທີ</div>
+            </div>
+            <span className="rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-bold text-success shrink-0">
+              ທັນທີ
+            </span>
+          </Link>
+        )}
+
+        {cfg.enable_qr_topup && (
+          <button
+            onClick={onQr}
+            className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-3 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99] cursor-pointer"
+          >
+            <img src={qrIcon.url} alt="QR Code" className="size-14 rounded-xl object-cover shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-sm">ໂອນຜ່ານ QR Code</div>
+              <div className="text-[11px] text-muted-foreground">ໂອນຜ່ານທະນາຄານ + ແນບສະລິບ</div>
+            </div>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary shrink-0">
+              Auto
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );
 }
+
 
 
 function AmountStep({
