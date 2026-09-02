@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import qrIcon from "@/assets/topup-qr.jpeg.asset.json";
 import codeIcon from "@/assets/topup-code.jpeg.asset.json";
+import cardIcon from "@/assets/topup-card.png";
 
 
 export const Route = createFileRoute("/topup")({
@@ -187,8 +188,20 @@ interface ChannelSettings {
 }
 
 function ChooseMethod({ onQr }: { onQr: () => void }) {
-  const { profile } = useAuth() as { profile?: { wallet_balance?: number } | null };
+  const { session } = useAuth();
+  const [balance, setBalance] = useState(0);
   const [cfg, setCfg] = useState<ChannelSettings | null>(null);
+
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return;
+    supabase
+      .from("profiles")
+      .select("wallet_balance")
+      .eq("id", uid)
+      .maybeSingle()
+      .then(({ data }) => setBalance(Number(data?.wallet_balance ?? 0)));
+  }, [session?.user?.id]);
 
   useEffect(() => {
     supabase
@@ -222,7 +235,7 @@ function ChooseMethod({ onQr }: { onQr: () => void }) {
       <div className="rounded-3xl bg-gradient-to-br from-primary to-accent p-5 text-primary-foreground">
         <div className="text-xs opacity-90">ຍອດເງິນໃນກະເປົາ</div>
         <div className="text-2xl font-extrabold mt-1">
-          {formatKip(Number(profile?.wallet_balance ?? 0))} ₭
+          {formatKip(balance)} ₭
         </div>
         <div className="text-xs opacity-90 mt-2">ເລືອກຊ່ອງທາງເຕີມເງິນຂ້າງລຸ່ມ</div>
       </div>
@@ -402,7 +415,7 @@ function QrStep({
   // Auto-close result popup — both outcomes return to the amount screen.
   useEffect(() => {
     if (!result) return;
-    const t = setTimeout(onDone, result.ok ? 5000 : 12000);
+    const t = setTimeout(onDone, 4000);
     return () => clearTimeout(t);
   }, [result, onDone]);
 
@@ -500,13 +513,13 @@ function QrStep({
         ຍົກເລີກ
       </Button>
 
-      {result && <ResultPopup ok={result.ok} message={result.message} onClose={onDone} />}
+      {result && <ResultPopup ok={result.ok} onClose={onDone} />}
 
     </div>
   );
 }
 
-function ResultPopup({ ok, message, onClose }: { ok: boolean; message: string; onClose: () => void }) {
+function ResultPopup({ ok, onClose }: { ok: boolean; message?: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/35 backdrop-blur-sm px-4">
       <div className="w-full max-w-xs card-tile p-6 text-center space-y-3">
@@ -515,11 +528,7 @@ function ResultPopup({ ok, message, onClose }: { ok: boolean; message: string; o
         ) : (
           <XCircle className="size-16 text-destructive mx-auto" />
         )}
-        <div className="font-bold text-base">{ok ? "ສຳເລັດ" : "ສະລິບບໍ່ຖືກຕ້ອງ"}</div>
-        {!ok && <div className="text-xs font-semibold text-destructive">ເຫດຜົນ:</div>}
-        <div className={cn("text-sm whitespace-pre-line", ok ? "text-muted-foreground" : "text-foreground")}>
-          {message}
-        </div>
+        <div className="text-xl font-extrabold">{ok ? "ສຳເລັດ" : "ບໍ່ສຳເລັດ"}</div>
         <Button onClick={onClose} className="w-full btn-neon">ຕົກລົງ</Button>
       </div>
     </div>
