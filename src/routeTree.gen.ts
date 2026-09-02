@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TopupCardRouteImport } from './routes/topup-card'
 import { Route as TopupRouteImport } from './routes/topup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RedeemRouteImport } from './routes/redeem'
@@ -28,6 +29,11 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
+const TopupCardRoute = TopupCardRouteImport.update({
+  id: '/topup-card',
+  path: '/topup-card',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TopupRoute = TopupRouteImport.update({
   id: '/topup',
   path: '/topup',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
+  '/topup-card': typeof TopupCardRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
+  '/topup-card': typeof TopupCardRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
+  '/topup-card': typeof TopupCardRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/redeem'
     | '/reset-password'
     | '/topup'
+    | '/topup-card'
     | '/admin'
     | '/messages'
     | '/profile'
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/redeem'
     | '/reset-password'
     | '/topup'
+    | '/topup-card'
     | '/admin'
     | '/messages'
     | '/profile'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/redeem'
     | '/reset-password'
     | '/topup'
+    | '/topup-card'
     | '/_authenticated/admin'
     | '/_authenticated/messages'
     | '/_authenticated/profile'
@@ -249,6 +261,7 @@ export interface RootRouteChildren {
   RedeemRoute: typeof RedeemRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopupRoute: typeof TopupRoute
+  TopupCardRoute: typeof TopupCardRoute
   CardIdRoute: typeof CardIdRoute
   CategoryIdRoute: typeof CategoryIdRoute
   GameIdRoute: typeof GameIdRoute
@@ -257,6 +270,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/topup-card': {
+      id: '/topup-card'
+      path: '/topup-card'
+      fullPath: '/topup-card'
+      preLoaderRoute: typeof TopupCardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/topup': {
       id: '/topup'
       path: '/topup'
@@ -414,6 +434,7 @@ const rootRouteChildren: RootRouteChildren = {
   RedeemRoute: RedeemRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TopupRoute: TopupRoute,
+  TopupCardRoute: TopupCardRoute,
   CardIdRoute: CardIdRoute,
   CategoryIdRoute: CategoryIdRoute,
   GameIdRoute: GameIdRoute,
