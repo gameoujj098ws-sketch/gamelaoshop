@@ -145,3 +145,39 @@ export const adminSetWallet = createServerFn({ method: "POST" })
 
     return { ok: true, balance: next, delta };
   });
+
+/** Bans or unbans a customer account. */
+export const adminSetBan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        banned: z.boolean(),
+        reason: z.string().max(500).optional(),
+      })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await assertAdmin(context as any);
+    const { error } = await db
+      .from("profiles")
+      .update({
+        is_banned: data.banned,
+        ban_reason: data.banned ? (data.reason?.trim() || "ລະເມີດເງື່ອນໄຂການໃຊ້ງານ") : null,
+        banned_at: data.banned ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await db.from("notifications").insert({
+      user_id: data.id,
+      title: data.banned ? "ບັນຊີຖືກແບນ" : "ບັນຊີຖືກປົດແບນ",
+      body: data.banned
+        ? `ບັນຊີຂອງທ່ານຖືກແບນ — ເຫດຜົນ: ${data.reason?.trim() || "ລະເມີດເງື່ອນໄຂການໃຊ້ງານ"}`
+        : "ບັນຊີຂອງທ່ານໃຊ້ງານໄດ້ປົກກະຕິແລ້ວ",
+    });
+
+    return { ok: true, banned: data.banned };
+  });
