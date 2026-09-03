@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface S {
   bank_account_name: string | null;
@@ -24,6 +25,11 @@ interface S {
   contact_facebook: string | null;
   contact_discord: string | null;
   contact_whatsapp: string | null;
+  enable_card_topup: boolean;
+  enable_code_topup: boolean;
+  enable_qr_topup: boolean;
+  card_topup_value: number;
+  card_topup_fee_percent: number;
 }
 
 const EMPTY: S = {
@@ -32,6 +38,8 @@ const EMPTY: S = {
   logo_url: "", slide_images: [], slide_interval: 4, ad_images: [],
   store_notice_1: "", store_notice_2: "",
   contact_facebook: "", contact_discord: "", contact_whatsapp: "",
+  enable_card_topup: true, enable_code_topup: true, enable_qr_topup: true,
+  card_topup_value: 10000, card_topup_fee_percent: 0,
 };
 
 export function AdminSettings() {
@@ -53,6 +61,11 @@ export function AdminSettings() {
             slide_images: Array.isArray(raw.slide_images) ? raw.slide_images : [],
             ad_images: Array.isArray(raw.ad_images) ? raw.ad_images : [],
             slide_interval: Number(raw.slide_interval ?? 4),
+            enable_card_topup: raw.enable_card_topup ?? true,
+            enable_code_topup: raw.enable_code_topup ?? true,
+            enable_qr_topup: raw.enable_qr_topup ?? true,
+            card_topup_value: Number(raw.card_topup_value ?? 10000),
+            card_topup_fee_percent: Number(raw.card_topup_fee_percent ?? 0),
           });
         }
       } catch (e) {
@@ -68,6 +81,16 @@ export function AdminSettings() {
     <div>
       <Label className="text-xs">{label}</Label>
       <Input value={(s[key] as string) ?? ""} onChange={(e) => setS({ ...s, [key]: e.target.value })} className="mt-1" />
+    </div>
+  );
+
+  const toggle = (key: "enable_card_topup" | "enable_code_topup" | "enable_qr_topup", label: string, hint: string) => (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 p-3">
+      <div className="min-w-0">
+        <div className="text-sm font-bold">{label}</div>
+        <div className="text-[11px] text-muted-foreground">{hint}</div>
+      </div>
+      <Switch checked={s[key]} onCheckedChange={(v) => setS({ ...s, [key]: v })} />
     </div>
   );
 
@@ -165,6 +188,37 @@ export function AdminSettings() {
         <div className="text-sm font-bold">ຊ່ອງປະກາດ (ໜ້າຫຼັກສິນຄ້າທົ່ວໄປ)</div>
         {field("store_notice_1", "ຂໍ້ຄວາມປະກາດ 1")}
         {field("store_notice_2", "ຂໍ້ຄວາມປະກາດ 2")}
+      </div>
+
+      <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-3">
+        <div className="text-sm font-bold">ຊ່ອງທາງເຕີມເງິນ (ເປີດ / ປິດ)</div>
+        {toggle("enable_card_topup", "ບັດເຕີມເງິນ", "ໃສ່ເລກບັດ 14 ຕົວ ແລ້ວແອດມິນອະນຸມັດ")}
+        {toggle("enable_code_topup", "ໃຊ້ໂຄດເຕີມເງິນ", "ເງິນເຂົ້າກະເປົາທັນທີ")}
+        {toggle("enable_qr_topup", "ໂອນຜ່ານ QR Code", "ກວດສະລິບອັດຕະໂນມັດ")}
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label className="text-xs">ມູນຄ່າບັດ (ກີບ)</Label>
+            <Input
+              type="number" min={0}
+              value={s.card_topup_value}
+              onChange={(e) => setS({ ...s, card_topup_value: Math.max(0, parseInt(e.target.value || "0", 10)) })}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-xs">ຄ່າທຳນຽມ (%)</Label>
+            <Input
+              type="number" min={0} max={100}
+              value={s.card_topup_fee_percent}
+              onChange={(e) => setS({ ...s, card_topup_fee_percent: Math.max(0, Math.min(100, parseInt(e.target.value || "0", 10))) })}
+              className="mt-1"
+            />
+          </div>
+        </div>
+        <div className="text-[11px] text-muted-foreground">
+          ລູກຄ້າຈະໄດ້ຮັບ {Math.floor((s.card_topup_value * (100 - s.card_topup_fee_percent)) / 100).toLocaleString()} ₭ ຕໍ່ 1 ບັດ
+        </div>
       </div>
 
       <div className="rounded-xl border border-border/60 p-3 space-y-3">
