@@ -62,7 +62,7 @@ function CategoryPage() {
   return (
     <AppShell>
       <div className="px-4 space-y-4">
-        <Link to="/home" className="inline-flex items-center gap-1 text-xs text-primary">
+        <Link to="/" className="inline-flex items-center gap-1 text-xs text-primary">
           <ChevronLeft className="size-4" /> ກັບໜ້າສິນຄ້າທົ່ວໄປ
         </Link>
 

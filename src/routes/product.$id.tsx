@@ -80,7 +80,7 @@ function ProductPage() {
     <AppShell>
       <div className="space-y-4 pb-4">
         <div className="px-4 pt-1">
-          <button onClick={() => navigate({ to: "/home" })} className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+          <button onClick={() => navigate({ to: "/" })} className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
             <ArrowLeft className="size-4" /> ກັບຄືນ
           </button>
         </div>
