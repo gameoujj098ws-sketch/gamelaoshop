@@ -3,7 +3,7 @@ import { Gamepad2, Clock, Wallet, CreditCard, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const left = [
-  { to: "/", label: "ເຕີມເກມ", icon: Gamepad2 },
+  { to: "/games", label: "ເຕີມເກມ", icon: Gamepad2 },
   { to: "/history", label: "ປະຫວັດ", icon: Clock },
 ] as const;
 
@@ -50,19 +50,19 @@ export function BottomNav() {
           {left.map(item)}
           <li className="flex justify-center">
             <Link
-              to="/home"
+              to="/"
               aria-label="ໜ້າຫຼັກ"
               className="-mt-6 flex flex-col items-center gap-1"
             >
               <span
                 className={cn(
                   "grid place-items-center size-14 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg ring-4 ring-background transition-transform active:scale-95",
-                  isActive("/home") && "neon-glow",
+                  isActive("/") && "neon-glow",
                 )}
               >
                 <Home className="size-6" />
               </span>
-              <span className={cn("text-[11px] font-medium", isActive("/home") ? "text-primary" : "text-muted-foreground")}>
+              <span className={cn("text-[11px] font-medium", isActive("/") ? "text-primary" : "text-muted-foreground")}>
                 ໜ້າຫຼັກ
               </span>
             </Link>

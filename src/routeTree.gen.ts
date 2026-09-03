@@ -13,8 +13,8 @@ import { Route as TopupCardRouteImport } from './routes/topup-card'
 import { Route as TopupRouteImport } from './routes/topup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RedeemRouteImport } from './routes/redeem'
-import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as GamesRouteImport } from './routes/games'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -49,14 +49,14 @@ const RedeemRoute = RedeemRouteImport.update({
   path: '/redeem',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -129,8 +129,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/contact': typeof ContactRoute
+  '/games': typeof GamesRoute
   '/history': typeof HistoryRoute
-  '/home': typeof HomeRoute
   '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
@@ -149,8 +149,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/contact': typeof ContactRoute
+  '/games': typeof GamesRoute
   '/history': typeof HistoryRoute
-  '/home': typeof HomeRoute
   '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
@@ -171,8 +171,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cards': typeof CardsRoute
   '/contact': typeof ContactRoute
+  '/games': typeof GamesRoute
   '/history': typeof HistoryRoute
-  '/home': typeof HomeRoute
   '/redeem': typeof RedeemRoute
   '/reset-password': typeof ResetPasswordRoute
   '/topup': typeof TopupRoute
@@ -193,8 +193,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/contact'
+    | '/games'
     | '/history'
-    | '/home'
     | '/redeem'
     | '/reset-password'
     | '/topup'
@@ -213,8 +213,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/contact'
+    | '/games'
     | '/history'
-    | '/home'
     | '/redeem'
     | '/reset-password'
     | '/topup'
@@ -234,8 +234,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cards'
     | '/contact'
+    | '/games'
     | '/history'
-    | '/home'
     | '/redeem'
     | '/reset-password'
     | '/topup'
@@ -256,8 +256,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CardsRoute: typeof CardsRoute
   ContactRoute: typeof ContactRoute
+  GamesRoute: typeof GamesRoute
   HistoryRoute: typeof HistoryRoute
-  HomeRoute: typeof HomeRoute
   RedeemRoute: typeof RedeemRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopupRoute: typeof TopupRoute
@@ -298,18 +298,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RedeemRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/history': {
       id: '/history'
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -429,8 +429,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CardsRoute: CardsRoute,
   ContactRoute: ContactRoute,
+  GamesRoute: GamesRoute,
   HistoryRoute: HistoryRoute,
-  HomeRoute: HomeRoute,
   RedeemRoute: RedeemRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TopupRoute: TopupRoute,
