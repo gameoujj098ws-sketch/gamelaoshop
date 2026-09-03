@@ -10,6 +10,8 @@ import { AdminOrders } from "@/components/admin/AdminOrders";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminTopups } from "@/components/admin/AdminTopups";
 import { AdminStore } from "@/components/admin/AdminStore";
+import { AdminCardTopups } from "@/components/admin/AdminCardTopups";
+import { AdminCodes } from "@/components/admin/AdminCodes";
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -33,6 +35,8 @@ const TABS = [
   { key: "store", label: "ສິນຄ້າທົ່ວໄປ" },
   { key: "orders", label: "ອໍເດີ" },
 
+  { key: "cardtopups", label: "ອະນຸມັດບັດເຕີມເງິນ" },
+  { key: "codes", label: "ສ້າງໂຄດ" },
   { key: "topups", label: "ປະຫວັດເຕີມເງິນ" },
   { key: "settings", label: "ຕັ້ງຄ່າ" },
 ] as const;
@@ -73,6 +77,8 @@ function AdminPage() {
       {tab === "store" && <AdminStore />}
       {tab === "orders" && <AdminOrders />}
 
+      {tab === "cardtopups" && <AdminCardTopups />}
+      {tab === "codes" && <AdminCodes />}
       {tab === "topups" && <AdminTopups />}
       {tab === "settings" && <AdminSettings />}
     </div>

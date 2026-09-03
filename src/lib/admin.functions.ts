@@ -354,6 +354,11 @@ export const adminSaveSettings = createServerFn({ method: "POST" })
         contact_facebook: z.string().max(500).nullable().optional(),
         contact_discord: z.string().max(500).nullable().optional(),
         contact_whatsapp: z.string().max(500).nullable().optional(),
+        enable_card_topup: z.boolean().optional(),
+        enable_code_topup: z.boolean().optional(),
+        enable_qr_topup: z.boolean().optional(),
+        card_topup_value: z.number().int().min(0).max(10_000_000).optional(),
+        card_topup_fee_percent: z.number().int().min(0).max(100).optional(),
       })
       .parse(raw),
   )

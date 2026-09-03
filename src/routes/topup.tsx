@@ -13,9 +13,9 @@ import { CheckCircle2, XCircle, Upload, Copy, Loader2, ArrowLeft, Wallet } from 
 import { formatKip } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import qrIcon from "@/assets/topup-qr.jpeg.asset.json";
-import codeIcon from "@/assets/topup-code.jpeg.asset.json";
-import cardIcon from "@/assets/topup-card.png";
+import qrIcon from "@/assets/topup-qr-bank.png.asset.json";
+import codeIcon from "@/assets/topup-code-icon.png.asset.json";
+import cardIcon from "@/assets/topup-card-icon.png.asset.json";
 
 
 export const Route = createFileRoute("/topup")({
@@ -86,26 +86,22 @@ function TopupFlow() {
   const active = useServerFn(getActiveTopup);
   const [restoring, setRestoring] = useState(true);
 
-  // Entering this page ALWAYS starts clean: any leftover pending request from a
-  // previous visit is cancelled so the old QR/slip screen can never reappear.
+  // An active QR request survives navigating away: it is restored here and only
+  // disappears when it expires, is submitted, or is cancelled explicitly.
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
         const res = await active({ data: undefined as never });
-        if (res.request) {
-          try { await cancel({ data: { id: (res.request as { id: string }).id } }); } catch { /* ignore */ }
+        const req = res.request as { id: string; amount: number; expires_at: string; reference_code: string | null } | null;
+        if (alive && req && new Date(req.expires_at).getTime() > Date.now()) {
+          setRequest(req);
+          setStep("qr");
         }
       } catch {
         /* ignore */
       } finally {
-        if (alive) {
-          setRequest(null);
-          setStep("choose");
-          setAmount(0);
-          setCustomAmount("");
-          setRestoring(false);
-        }
+        if (alive) setRestoring(false);
       }
     })();
     return () => { alive = false; };
@@ -155,8 +151,8 @@ function TopupFlow() {
       <QrStep
         key={request.id}
         request={request}
-        onExpire={() => resetFlow("amount")}
-        onDone={() => resetFlow("amount")}
+        onExpire={() => resetFlow("choose")}
+        onDone={() => resetFlow("choose")}
       />
     );
   }
@@ -252,7 +248,7 @@ function ChooseMethod({ onQr }: { onQr: () => void }) {
             to="/topup-card"
             className="w-full rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-3 text-left shadow-sm transition hover:border-primary/60 active:scale-[0.99]"
           >
-            <img src={cardIcon} alt="ບັດເຕີມເງິນ" className="size-14 rounded-xl object-cover shrink-0" />
+            <img src={cardIcon.url} alt="ບັດເຕີມເງິນ" className="size-14 rounded-xl object-cover shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="font-bold text-sm">ບັດເຕີມເງິນ</div>
               <div className="text-[11px] text-muted-foreground">
