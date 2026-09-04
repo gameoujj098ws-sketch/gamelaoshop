@@ -12,7 +12,7 @@ export const adminGetUser = createServerFn({ method: "GET" })
 
     const { data: profile, error } = await db
       .from("profiles")
-      .select("id, username, email, wallet_balance, created_at, updated_at")
+      .select("id, username, email, wallet_balance, created_at, updated_at, is_banned, ban_reason, banned_at")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -51,6 +51,9 @@ export const adminGetUser = createServerFn({ method: "GET" })
         order_count: orderCount ?? 0,
         topup_total: topupTotal,
         last_login: (logins ?? [])[0] ?? null,
+        is_banned: profile.is_banned,
+        ban_reason: profile.ban_reason,
+        banned_at: profile.banned_at,
       },
     };
   });
@@ -84,6 +87,13 @@ export const adminSetUsername = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = await assertAdmin(context as any);
+    const { data: targetRoles } = await db
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.id);
+    if (data.banned && targetRoles?.some((row: { role: string }) => row.role === "admin")) {
+      throw new Error("ບໍ່ສາມາດແບນບັນຊີແອດມິນໄດ້");
+    }
     const { error } = await db
       .from("profiles")
       .update({ username: data.username, updated_at: new Date().toISOString() })

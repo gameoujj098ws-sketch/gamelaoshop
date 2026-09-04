@@ -127,9 +127,26 @@ export const submitSlip = createServerFn({ method: "POST" })
       throw new Error("ໝົດເວລາ 15 ນາທີ, ກະລຸນາສ້າງ QR ໃໝ່");
     }
 
+    // Consume this request as soon as a slip is submitted. It must never be
+    // restored as an active QR request or accept a second image, even when a
+    // later verification/provider step fails.
+    const { data: consumed, error: consumeErr } = await supabase
+      .from("topup_requests")
+      .update({ status: "processing" })
+      .eq("id", req.id)
+      .eq("user_id", userId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
+    if (consumeErr) throw new Error(consumeErr.message);
+    if (!consumed) throw new Error("ລາຍການນີ້ຖືກໃຊ້ໄປແລ້ວ ກະລຸນາສ້າງ QR ໃໝ່");
+
     // Decode + hash
     const bytes = Uint8Array.from(atob(data.image_base64), (c) => c.charCodeAt(0));
-    if (bytes.byteLength > 6 * 1024 * 1024) throw new Error("ຮູບໃຫຍ່ເກີນ 6MB");
+    if (bytes.byteLength > 6 * 1024 * 1024) {
+      await supabase.from("topup_requests").update({ status: "rejected", verify_reason: "FILE_TOO_LARGE" }).eq("id", req.id);
+      throw new Error("ຮູບໃຫຍ່ເກີນ 6MB");
+    }
     const hash = await sha256Hex(bytes);
 
     // Check duplicates with privileged access so the same slip cannot be reused
