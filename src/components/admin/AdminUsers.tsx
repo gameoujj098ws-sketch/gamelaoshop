@@ -239,6 +239,44 @@ export function AdminUsers() {
                   ບັນທຶກຍອດເງິນ
                 </Button>
               </div>
+
+              <div className="space-y-2 rounded-lg border border-destructive/40 p-3">
+                <Label className="text-xs flex items-center gap-1 text-destructive">
+                  <Ban className="size-3.5" /> ແບນຜູ້ໃຊ້
+                </Label>
+                <p className="text-[10px] text-muted-foreground">
+                  ສະຖານະ: {detail.is_banned ? `ຖືກແບນ — ${detail.ban_reason ?? "-"}` : "ໃຊ້ງານປົກກະຕິ"}
+                </p>
+                {detail.is_banned ? (
+                  <Button variant="outline" className="w-full" disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      try {
+                        await setBan({ data: { id: detail.id, banned: false } });
+                        toast.success("ປົດແບນແລ້ວ");
+                        setDetail({ ...detail, is_banned: false, ban_reason: null });
+                        setReloadKey((k) => k + 1);
+                      } catch (e) { toast.error(e instanceof Error ? e.message : "ຜິດພາດ"); } finally { setBusy(false); }
+                    }}>ຍົກເລີກການແບນ</Button>
+                ) : (
+                  <>
+                    <Textarea value={banReason} onChange={(e) => setBanReason(e.target.value)}
+                      placeholder="ລາຍລະອຽດ / ເຫດຜົນການແບນ" rows={3} />
+                    <Button variant="destructive" className="w-full" disabled={busy || banReason.trim().length < 3}
+                      onClick={async () => {
+                        setBusy(true);
+                        try {
+                          await setBan({ data: { id: detail.id, banned: true, reason: banReason.trim() } });
+                          toast.success("ແບນຜູ້ໃຊ້ແລ້ວ");
+                          setDetail({ ...detail, is_banned: true, ban_reason: banReason.trim() });
+                          setBanReason("");
+                          setReloadKey((k) => k + 1);
+                        } catch (e) { toast.error(e instanceof Error ? e.message : "ຜິດພາດ"); } finally { setBusy(false); }
+                      }}>ຢືນຢັນການແບນ</Button>
+                  </>
+                )}
+              </div>
+
             </div>
           )}
         </DialogContent>
