@@ -6,6 +6,8 @@ import {
   adminSetUserPassword,
   adminSetUsername,
   adminSetWallet,
+  adminSetBan,
+
 } from "@/lib/admin-users.functions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
