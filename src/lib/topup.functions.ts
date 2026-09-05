@@ -64,7 +64,9 @@ export const getActiveTopup = createServerFn({ method: "GET" })
       .select("*")
       .eq("user_id", userId)
       .eq("status", "pending")
+      .is("slip_url", null)
       .gt("expires_at", new Date().toISOString())
+
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
