@@ -7,7 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStorefrontFeed } from "@/lib/storefront.functions";
 import { formatKip } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Loader2, Megaphone, ShoppingCart, ShoppingBag, Crown, Trophy, Clock, Package, Gamepad2 } from "lucide-react";
+import { Loader2, Megaphone, ShoppingCart, ShoppingBag, Clock, Package, Gamepad2 } from "lucide-react";
+import { InstallAppButton } from "@/components/app/InstallAppButton";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
