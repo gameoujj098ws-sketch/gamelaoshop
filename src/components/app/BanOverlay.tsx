@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 interface BanInfo {
   is_banned: boolean | null;
   ban_reason: string | null;
-  display_name?: string | null;
+  username?: string | null;
   email?: string | null;
 }
 
@@ -21,7 +21,7 @@ export function BanOverlay() {
     let active = true;
     supabase
       .from("profiles")
-      .select("is_banned, ban_reason, display_name, email")
+      .select("is_banned, ban_reason, username, email")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -48,7 +48,7 @@ export function BanOverlay() {
       <div className="w-full max-w-sm rounded-2xl border-2 border-destructive bg-destructive/95 p-6 text-center text-destructive-foreground shadow-2xl">
         <h2 className="text-xl font-bold">ບັນຊີຂອງທ່ານຖືກລະງັບ</h2>
         <p className="mt-2 text-sm opacity-90">
-          {ban.display_name || ban.email || ""}
+          {ban.username || ban.email || ""}
         </p>
         <p className="mt-4 text-sm">
           ເຫດຜົນ: {ban.ban_reason || "ບໍ່ໄດ້ລະບຸ"}

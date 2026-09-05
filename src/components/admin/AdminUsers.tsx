@@ -6,6 +6,8 @@ import {
   adminSetUserPassword,
   adminSetUsername,
   adminSetWallet,
+  adminSetBan,
+
 } from "@/lib/admin-users.functions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatKip } from "@/lib/format";
-import { Loader2, Search, MessageSquare, Eye, KeyRound, Wallet } from "lucide-react";
+import { Loader2, Search, MessageSquare, Eye, KeyRound, Wallet, Ban } from "lucide-react";
 
 interface U { id: string; username: string | null; email: string | null; wallet_balance: number; created_at: string }
 
@@ -23,7 +25,9 @@ interface Detail {
   created_at: string; email_confirmed: boolean; last_sign_in_at: string | null;
   provider: string; order_count: number; topup_total: number;
   last_login: { created_at: string; ip: string | null } | null;
+  is_banned: boolean; ban_reason: string | null;
 }
+
 
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -42,6 +46,9 @@ export function AdminUsers() {
   const setPassword = useServerFn(adminSetUserPassword);
   const setName = useServerFn(adminSetUsername);
   const setWallet = useServerFn(adminSetWallet);
+  const setBan = useServerFn(adminSetBan);
+  const [banReason, setBanReason] = useState("");
+
   const [q, setQ] = useState("");
   const [users, setUsers] = useState<U[]>([]);
   const [loading, setLoading] = useState(true);
@@ -239,6 +246,44 @@ export function AdminUsers() {
                   ບັນທຶກຍອດເງິນ
                 </Button>
               </div>
+
+              <div className="space-y-2 rounded-lg border border-destructive/40 p-3">
+                <Label className="text-xs flex items-center gap-1 text-destructive">
+                  <Ban className="size-3.5" /> ແບນຜູ້ໃຊ້
+                </Label>
+                <p className="text-[10px] text-muted-foreground">
+                  ສະຖານະ: {detail.is_banned ? `ຖືກແບນ — ${detail.ban_reason ?? "-"}` : "ໃຊ້ງານປົກກະຕິ"}
+                </p>
+                {detail.is_banned ? (
+                  <Button variant="outline" className="w-full" disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      try {
+                        await setBan({ data: { id: detail.id, banned: false } });
+                        toast.success("ປົດແບນແລ້ວ");
+                        setDetail({ ...detail, is_banned: false, ban_reason: null });
+                        setReloadKey((k) => k + 1);
+                      } catch (e) { toast.error(e instanceof Error ? e.message : "ຜິດພາດ"); } finally { setBusy(false); }
+                    }}>ຍົກເລີກການແບນ</Button>
+                ) : (
+                  <>
+                    <Textarea value={banReason} onChange={(e) => setBanReason(e.target.value)}
+                      placeholder="ລາຍລະອຽດ / ເຫດຜົນການແບນ" rows={3} />
+                    <Button variant="destructive" className="w-full" disabled={busy || banReason.trim().length < 3}
+                      onClick={async () => {
+                        setBusy(true);
+                        try {
+                          await setBan({ data: { id: detail.id, banned: true, reason: banReason.trim() } });
+                          toast.success("ແບນຜູ້ໃຊ້ແລ້ວ");
+                          setDetail({ ...detail, is_banned: true, ban_reason: banReason.trim() });
+                          setBanReason("");
+                          setReloadKey((k) => k + 1);
+                        } catch (e) { toast.error(e instanceof Error ? e.message : "ຜິດພາດ"); } finally { setBusy(false); }
+                      }}>ຢືນຢັນການແບນ</Button>
+                  </>
+                )}
+              </div>
+
             </div>
           )}
         </DialogContent>

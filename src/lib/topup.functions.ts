@@ -26,26 +26,14 @@ export const createTopupRequest = createServerFn({ method: "POST" })
       .eq("status", "pending")
       .lt("expires_at", new Date().toISOString());
 
-    // Active one?
-    const { data: existing } = await supabase
+    // Pressing "create" always issues a brand new request: cancel every
+    // pending one first so an old QR/slip can never come back.
+    await supabase
       .from("topup_requests")
-      .select("*")
+      .update({ status: "canceled" })
       .eq("user_id", userId)
-      .eq("status", "pending")
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .eq("status", "pending");
 
-    if (existing && existing.amount === data.amount) return { request: existing };
-
-    // Cancel other pending
-    if (existing) {
-      await supabase
-        .from("topup_requests")
-        .update({ status: "canceled" })
-        .eq("id", existing.id);
-    }
 
     const expiresAt = new Date(Date.now() + TOPUP_EXPIRE_MINUTES * 60 * 1000).toISOString();
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -76,7 +64,9 @@ export const getActiveTopup = createServerFn({ method: "GET" })
       .select("*")
       .eq("user_id", userId)
       .eq("status", "pending")
+      .is("slip_url", null)
       .gt("expires_at", new Date().toISOString())
+
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
