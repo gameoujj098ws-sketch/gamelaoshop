@@ -248,54 +248,9 @@ function StoreHomePage() {
           </div>
         </div>
 
-        {/* Top donate */}
-        <div className="px-4">
-          <div className="card-tile overflow-hidden">
-            <div className="flex items-center gap-3 bg-primary/10 p-3">
-              <span className="grid place-items-center size-10 rounded-xl bg-primary text-primary-foreground shrink-0">
-                <Crown className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-extrabold">TOP DONATE</div>
-                <div className="text-[11px] text-muted-foreground">ອັນດັບຄົນເຕີມເງິນສູງສຸດ</div>
-              </div>
-              <Trophy className="size-5 text-primary" />
-            </div>
-            {feed.top.length === 0 ? (
-              <p className="p-4 text-xs text-muted-foreground">ຍັງບໍ່ມີຂໍ້ມູນການເຕີມເງິນ</p>
-            ) : (
-              <div className="grid grid-cols-3 items-end gap-2 p-4">
-                {[1, 0, 2].map((idx, pos) => {
-                  const t = feed.top[idx];
-                  if (!t) return <div key={pos} />;
-                  const isKing = t.rank === 1;
-                  const badge = t.rank === 1 ? "CHAMPION" : t.rank === 2 ? "SILVER" : "BRONZE";
-                  return (
-                    <div key={t.rank} className="text-center space-y-1">
-                      <div className="relative inline-grid place-items-center">
-                        {isKing && <span className="absolute -top-4 text-lg">👑</span>}
-                        <span
-                          className={`grid place-items-center rounded-full font-extrabold text-white ${isKing ? "size-16 text-2xl bg-primary" : "size-12 text-lg bg-primary/60"}`}
-                        >
-                          {t.username.charAt(0).toUpperCase()}
-                        </span>
-                        <span className="absolute -bottom-1 -right-1 grid place-items-center size-5 rounded-full bg-foreground text-[10px] font-bold text-background">
-                          {t.rank}
-                        </span>
-                      </div>
-                      <div className="text-[11px] font-bold truncate">{t.username}</div>
-                      <div className="text-[11px] font-extrabold text-primary">{formatKip(t.total)} ₭</div>
-                      <div className={`rounded-md py-1 text-[9px] font-bold ${isKing ? "bg-primary/20 text-primary" : "bg-surface text-muted-foreground"}`}>
-                        {badge}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">ເຕີມ {t.count} ຄັ້ງ</div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Install app */}
+        <InstallAppButton />
+
       </div>
     </AppShell>
   );
