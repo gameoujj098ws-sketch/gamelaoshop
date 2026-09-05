@@ -87,13 +87,7 @@ export const adminSetUsername = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = await assertAdmin(context as any);
-    const { data: targetRoles } = await db
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", data.id);
-    if (data.banned && targetRoles?.some((row: { role: string }) => row.role === "admin")) {
-      throw new Error("ບໍ່ສາມາດແບນບັນຊີແອດມິນໄດ້");
-    }
+
     const { error } = await db
       .from("profiles")
       .update({ username: data.username, updated_at: new Date().toISOString() })
