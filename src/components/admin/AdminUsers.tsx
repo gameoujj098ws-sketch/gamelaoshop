@@ -44,6 +44,9 @@ export function AdminUsers() {
   const setPassword = useServerFn(adminSetUserPassword);
   const setName = useServerFn(adminSetUsername);
   const setWallet = useServerFn(adminSetWallet);
+  const setBan = useServerFn(adminSetBan);
+  const [banReason, setBanReason] = useState("");
+
   const [q, setQ] = useState("");
   const [users, setUsers] = useState<U[]>([]);
   const [loading, setLoading] = useState(true);
