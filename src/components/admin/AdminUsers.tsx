@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatKip } from "@/lib/format";
-import { Loader2, Search, MessageSquare, Eye, KeyRound, Wallet } from "lucide-react";
+import { Loader2, Search, MessageSquare, Eye, KeyRound, Wallet, Ban } from "lucide-react";
 
 interface U { id: string; username: string | null; email: string | null; wallet_balance: number; created_at: string }
 
@@ -23,7 +23,9 @@ interface Detail {
   created_at: string; email_confirmed: boolean; last_sign_in_at: string | null;
   provider: string; order_count: number; topup_total: number;
   last_login: { created_at: string; ip: string | null } | null;
+  is_banned: boolean; ban_reason: string | null;
 }
+
 
 
 function Row({ label, value }: { label: string; value: string }) {
