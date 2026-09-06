@@ -113,7 +113,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
     if (reqErr) throw new Error(reqErr.message);
-    if (!req) throw new Error("ບໍ່ພົບລາຍການເຕີມເງິນ");
+    if (!req) throw new Error("Top-up request not found.");
     if (req.status !== "pending") throw new Error("ລາຍການນີ້ຖືກປິດແລ້ວ");
     if (new Date(req.expires_at).getTime() < Date.now()) {
       await supabaseAdmin.from("topup_requests").update({ status: "expired" }).eq("id", req.id);
@@ -132,13 +132,13 @@ export const submitSlip = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (consumeErr) throw new Error(consumeErr.message);
-    if (!consumed) throw new Error("ລາຍການນີ້ຖືກໃຊ້ໄປແລ້ວ ກະລຸນາສ້າງ QR ໃໝ່");
+    if (!consumed) throw new Error("This request was already used. Please create a new QR.");
 
     // Decode + hash
     const bytes = Uint8Array.from(atob(data.image_base64), (c) => c.charCodeAt(0));
     if (bytes.byteLength > 6 * 1024 * 1024) {
       await supabaseAdmin.from("topup_requests").update({ status: "rejected", verify_reason: "FILE_TOO_LARGE" }).eq("id", req.id);
-      throw new Error("ຮູບໃຫຍ່ເກີນ 6MB");
+      throw new Error("Slip image is larger than 6MB. Please attach a smaller image.");
     }
     const hash = await sha256Hex(bytes);
 
@@ -153,7 +153,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       await supabaseAdmin.from("topup_requests")
         .update({ status: "rejected", verify_reason: "ບໍ່ສາມາດຢືນຢັນຂໍ້ມູນສະລິບໄດ້" })
         .eq("id", req.id);
-      throw new Error("ບໍ່ສາມາດຢືນຢັນຂໍ້ມູນສະລິບໄດ້, ກະລຸນາຕິດຕໍ່ແອດມິນ");
+      throw new Error("This slip has already been used. Please contact admin.");
     }
 
     // Upload to storage
@@ -219,7 +219,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       await supabaseAdmin.from("topup_requests")
         .update({ status: "rejected", slip_url: objectPath, slip_hash: hash, verify_reason: "AI_ERROR" })
         .eq("id", req.id);
-      throw new Error("ບໍ່ສາມາດຢືນຢັນສະລິບໄດ້, ກະລຸນາລອງໃໝ່");
+      throw new Error("Could not verify the slip right now. Please try again.");
     }
     const aiJson = await aiRes.json();
     const call = aiJson?.choices?.[0]?.message?.tool_calls?.[0];
@@ -255,13 +255,13 @@ export const submitSlip = createServerFn({ method: "POST" })
 
     if (!verdict) {
       await reject("NO_VERDICT");
-      return { ok: false, reason: "ອ່ານຂໍ້ມູນໃນຮູບບໍ່ໄດ້ — ກະລຸນາແນບຮູບສະລິບທີ່ຊັດເຈນ ເຫັນຊື່ຜູ້ຮັບ, ຈຳນວນເງິນ ແລະ ວັນ-ເວລາ" };
+      return { ok: false, reason: "Could not read the image. Please attach a clear slip showing receiver name, amount, and date-time." };
     }
 
     // Authenticity
     if (!verdict.looks_authentic || verdict.confidence < 0.5) {
       await reject("AUTH_FAIL");
-      return { ok: false, reason: "ຮູບນີ້ບໍ່ຄືສະລິບໂອນເງິນຈິງ ຫຼື ຂໍ້ມູນບໍ່ຊັດເຈນ (ອາດຖືກແກ້ໄຂ/ຖ່າຍບໍ່ຄົບ)" };
+      return { ok: false, reason: "This image does not look like a genuine transfer slip, or the details are unclear (possibly edited or cropped)." };
     }
 
     // Amount check (must match exactly, ±1 kip rounding tolerance)
@@ -270,8 +270,8 @@ export const submitSlip = createServerFn({ method: "POST" })
       return {
         ok: false,
         reason: verdict.amount == null
-          ? "ບໍ່ພົບຈຳນວນເງິນໃນສະລິບ"
-          : `ຈຳນວນເງິນບໍ່ຕົງກັນ: ໃນສະລິບ ${verdict.amount.toLocaleString()} ₭ ແຕ່ລາຍການນີ້ຕ້ອງເປັນ ${req.amount.toLocaleString()} ₭`,
+          ? "Amount not found on the slip."
+          : `Amount mismatch: slip shows ${verdict.amount.toLocaleString()} \u20ad but this request requires ${req.amount.toLocaleString()} \u20ad.`,
       };
     }
 
@@ -280,7 +280,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       await reject("NAME_MISMATCH");
       return {
         ok: false,
-        reason: `ຊື່ບັນຊີຜູ້ຮັບບໍ່ຖືກຕ້ອງ: ໃນສະລິບແມ່ນ "${verdict.receiver_name ?? "ບໍ່ພົບ"}" ແຕ່ຕ້ອງໂອນເຂົ້າຊື່ SOMYONE KHAMKHEUNG`,
+        reason: `Wrong receiver: slip shows "${verdict.receiver_name ?? "not found"}" but the transfer must go to SOMYONE KHAMKHEUNG.`,
       };
     }
 
@@ -294,8 +294,8 @@ export const submitSlip = createServerFn({ method: "POST" })
       return {
         ok: false,
         reason: parsed == null
-          ? "ບໍ່ພົບວັນ-ເວລາໂອນໃນສະລິບ ຫຼື ອ່ານບໍ່ອອກ"
-          : `ວັນ-ເວລາໂອນບໍ່ຖືກຕ້ອງ: ໃນສະລິບ ${fmt(parsed)} ແຕ່ຕ້ອງໂອນໃນວັນດຽວກັນ ແລະ ພາຍໃນ ${TOPUP_EXPIRE_MINUTES} ນາທີ ຫຼັງສ້າງລາຍການ (${fmt(Date.parse(req.created_at))})`,
+          ? "Transfer date-time not found or unreadable on the slip."
+          : `Invalid transfer time: slip shows ${fmt(parsed)}, but the transfer must be on the same day and within ${TOPUP_EXPIRE_MINUTES} minutes after the request was created (${fmt(Date.parse(req.created_at))}).`,
       };
     }
 
