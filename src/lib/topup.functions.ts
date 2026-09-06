@@ -17,9 +17,10 @@ export const createTopupRequest = createServerFn({ method: "POST" })
   .inputValidator(createTopupInput)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
 
     // Cancel any expired pending
-    await supabase
+    await admin
       .from("topup_requests")
       .update({ status: "expired" })
       .eq("user_id", userId)
@@ -28,7 +29,7 @@ export const createTopupRequest = createServerFn({ method: "POST" })
 
     // Pressing "create" always issues a brand new request: cancel every
     // pending one first so an old QR/slip can never come back.
-    await supabase
+    await admin
       .from("topup_requests")
       .update({ status: "canceled" })
       .eq("user_id", userId)
@@ -78,8 +79,9 @@ export const cancelTopup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(topupIdInput)
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    await supabase
+    const { userId } = context;
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+    await admin
       .from("topup_requests")
       .update({ status: "canceled" })
       .eq("id", data.id)
@@ -102,6 +104,7 @@ export const submitSlip = createServerFn({ method: "POST" })
   .inputValidator(submitSlipInput)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: req, error: reqErr } = await supabase
       .from("topup_requests")
@@ -113,14 +116,14 @@ export const submitSlip = createServerFn({ method: "POST" })
     if (!req) throw new Error("ບໍ່ພົບລາຍການເຕີມເງິນ");
     if (req.status !== "pending") throw new Error("ລາຍການນີ້ຖືກປິດແລ້ວ");
     if (new Date(req.expires_at).getTime() < Date.now()) {
-      await supabase.from("topup_requests").update({ status: "expired" }).eq("id", req.id);
+      await supabaseAdmin.from("topup_requests").update({ status: "expired" }).eq("id", req.id);
       throw new Error("ໝົດເວລາ 15 ນາທີ, ກະລຸນາສ້າງ QR ໃໝ່");
     }
 
     // Consume this request as soon as a slip is submitted. It must never be
     // restored as an active QR request or accept a second image, even when a
     // later verification/provider step fails.
-    const { data: consumed, error: consumeErr } = await supabase
+    const { data: consumed, error: consumeErr } = await supabaseAdmin
       .from("topup_requests")
       .update({ status: "processing" })
       .eq("id", req.id)
@@ -134,21 +137,20 @@ export const submitSlip = createServerFn({ method: "POST" })
     // Decode + hash
     const bytes = Uint8Array.from(atob(data.image_base64), (c) => c.charCodeAt(0));
     if (bytes.byteLength > 6 * 1024 * 1024) {
-      await supabase.from("topup_requests").update({ status: "rejected", verify_reason: "FILE_TOO_LARGE" }).eq("id", req.id);
+      await supabaseAdmin.from("topup_requests").update({ status: "rejected", verify_reason: "FILE_TOO_LARGE" }).eq("id", req.id);
       throw new Error("ຮູບໃຫຍ່ເກີນ 6MB");
     }
     const hash = await sha256Hex(bytes);
 
     // Check duplicates with privileged access so the same slip cannot be reused
     // from a different customer account hidden by row-level access rules.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: dup } = await supabaseAdmin
       .from("topup_requests")
       .select("id")
       .eq("slip_hash", hash)
       .maybeSingle();
     if (dup && dup.id !== req.id) {
-      await supabase.from("topup_requests")
+      await supabaseAdmin.from("topup_requests")
         .update({ status: "rejected", verify_reason: "ບໍ່ສາມາດຢືນຢັນຂໍ້ມູນສະລິບໄດ້" })
         .eq("id", req.id);
       throw new Error("ບໍ່ສາມາດຢືນຢັນຂໍ້ມູນສະລິບໄດ້, ກະລຸນາຕິດຕໍ່ແອດມິນ");
@@ -214,7 +216,7 @@ export const submitSlip = createServerFn({ method: "POST" })
     if (!aiRes.ok) {
       const body = await aiRes.text();
       console.error("AI gateway error", aiRes.status, body);
-      await supabase.from("topup_requests")
+      await supabaseAdmin.from("topup_requests")
         .update({ status: "rejected", slip_url: objectPath, slip_hash: hash, verify_reason: "AI_ERROR" })
         .eq("id", req.id);
       throw new Error("ບໍ່ສາມາດຢືນຢັນສະລິບໄດ້, ກະລຸນາລອງໃໝ່");
@@ -231,7 +233,7 @@ export const submitSlip = createServerFn({ method: "POST" })
     const reqId = req.id;
     const reqAmount = req.amount;
     async function reject(reasonCode: string) {
-      await supabase.from("topup_requests")
+      await supabaseAdmin.from("topup_requests")
         .update({
           status: "rejected",
           slip_url: objectPath,
@@ -314,7 +316,7 @@ export const submitSlip = createServerFn({ method: "POST" })
       .eq("id", userId);
     if (updErr) throw new Error(updErr.message);
 
-    await supabase.from("topup_requests")
+    await supabaseAdmin.from("topup_requests")
       .update({
         status: "approved",
         slip_url: objectPath,
