@@ -408,12 +408,13 @@ function QrStep({
     return () => clearInterval(t);
   }, [request.expires_at, onExpire]);
 
-  // Auto-close result popup — both outcomes return to the amount screen.
+  // Auto-close only on success; failures stay open so the reason can be read.
   useEffect(() => {
-    if (!result) return;
+    if (!result || !result.ok) return;
     const t = setTimeout(onDone, 4000);
     return () => clearTimeout(t);
   }, [result, onDone]);
+
 
   async function onFile(file: File) {
     if (submitted || busy) return;
