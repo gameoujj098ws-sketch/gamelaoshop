@@ -408,12 +408,13 @@ function QrStep({
     return () => clearInterval(t);
   }, [request.expires_at, onExpire]);
 
-  // Auto-close result popup — both outcomes return to the amount screen.
+  // Auto-close only on success; failures stay open so the reason can be read.
   useEffect(() => {
-    if (!result) return;
+    if (!result || !result.ok) return;
     const t = setTimeout(onDone, 4000);
     return () => clearTimeout(t);
   }, [result, onDone]);
+
 
   async function onFile(file: File) {
     if (submitted || busy) return;
@@ -509,13 +510,13 @@ function QrStep({
         ຍົກເລີກ
       </Button>
 
-      {result && <ResultPopup ok={result.ok} onClose={onDone} />}
+      {result && <ResultPopup ok={result.ok} message={result.message} onClose={onDone} />}
 
     </div>
   );
 }
 
-function ResultPopup({ ok, onClose }: { ok: boolean; message?: string; onClose: () => void }) {
+function ResultPopup({ ok, message, onClose }: { ok: boolean; message?: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/35 backdrop-blur-sm px-4">
       <div className="w-full max-w-xs card-tile p-6 text-center space-y-3">
@@ -525,11 +526,27 @@ function ResultPopup({ ok, onClose }: { ok: boolean; message?: string; onClose: 
           <XCircle className="size-16 text-destructive mx-auto" />
         )}
         <div className="text-xl font-extrabold">{ok ? "ສຳເລັດ" : "ບໍ່ສຳເລັດ"}</div>
+        {message && (
+          <div
+            className={cn(
+              "rounded-xl p-3 text-left text-xs leading-relaxed whitespace-pre-line",
+              ok ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive",
+            )}
+          >
+            {message}
+          </div>
+        )}
+        {!ok && (
+          <p className="text-[11px] text-muted-foreground">
+            ກະລຸນາກົດ “ຕົກລົງ” ແລ້ວສ້າງລາຍການເຕີມເງິນໃໝ່ ຈາກນັ້ນແນບສະລິບທີ່ຖືກຕ້ອງ
+          </p>
+        )}
         <Button onClick={onClose} className="w-full btn-neon">ຕົກລົງ</Button>
       </div>
     </div>
   );
 }
+
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
