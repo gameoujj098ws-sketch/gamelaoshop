@@ -450,68 +450,88 @@ function QrStep({
   const ss = String(secondsLeft % 60).padStart(2, "0");
 
   return (
-    <div className="px-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">ຢືນຢັນການໂອນເງິນ</div>
-        <div className={cn("text-sm font-mono font-bold", secondsLeft < 60 ? "text-destructive" : "text-primary")}>
-          {mm}:{ss}
-        </div>
-      </div>
-
-      <div className="card-tile p-5 text-center space-y-3">
-        {bankQr ? (
-          <img src={bankQr} alt="QR" className="mx-auto rounded-xl bg-white p-2 size-64 object-contain" />
-        ) : qrDataUrl ? (
-          <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl bg-white p-2 size-64 object-contain" />
-        ) : (
-          <div className="size-64 mx-auto rounded-xl bg-surface grid place-items-center">
-            <Loader2 className="size-6 animate-spin text-primary" />
-          </div>
-        )}
-        <div className="text-xs text-muted-foreground">ຊື່ບັນຊີຜູ້ຮັບ</div>
-        <div className="font-bold flex items-center justify-center gap-2">
-          {RECEIVER_NAME}
-          <button
-            onClick={() => { navigator.clipboard.writeText(RECEIVER_NAME); toast.success("ຄັດລອກແລ້ວ"); }}
-            className="opacity-70 hover:opacity-100"
+    <div className="px-4 pb-6">
+      <div className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-lg">
+        {/* Blue header: countdown, amount and receiver */}
+        <div className="bg-gradient-to-b from-primary to-primary/90 px-5 pt-5 pb-6 text-center text-primary-foreground">
+          <div
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-lg font-extrabold tabular-nums",
+              secondsLeft < 60 ? "bg-destructive text-destructive-foreground" : "bg-primary-foreground/20",
+            )}
           >
-            <Copy className="size-4" />
+            <Clock className="size-5" />
+            {mm}:{ss}
+          </div>
+          <div className="mt-3 text-sm opacity-90">ຈຳນວນທີ່ຕ້ອງໂອນ</div>
+          <div className="text-4xl font-extrabold leading-tight">{formatKip(request.amount)} ₭</div>
+          <div className="mt-2 text-sm">
+            <span className="opacity-90">ຜູ້ຮັບ: </span>
+            <span className="font-bold">SOMYONE KHAMKHEUNG</span>
+            <button
+              onClick={() => { navigator.clipboard.writeText(RECEIVER_NAME); toast.success("ຄັດລອກແລ້ວ"); }}
+              className="ml-2 align-middle opacity-80 hover:opacity-100"
+              aria-label="copy"
+            >
+              <Copy className="size-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* QR area */}
+        <div className="p-4">
+          <div className="rounded-2xl border-2 border-dashed border-primary/35 p-4">
+            <div className="relative mx-auto w-full max-w-[280px]">
+              {bankQr || qrDataUrl ? (
+                <>
+                  <img
+                    src={bankQr ?? qrDataUrl!}
+                    alt="QR"
+                    className="w-full rounded-xl bg-white object-contain"
+                  />
+                  <img
+                    src="/icon-192.png"
+                    alt=""
+                    className="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-lg border-2 border-white bg-white"
+                  />
+                </>
+              ) : (
+                <div className="aspect-square w-full grid place-items-center rounded-xl bg-surface">
+                  <Loader2 className="size-6 animate-spin text-primary" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy || submitted || secondsLeft <= 0}
+            className="mt-4 flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-primary/40 px-4 py-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-60"
+          >
+            {busy ? (
+              <><Loader2 className="size-5 animate-spin text-primary" /> ກຳລັງກວດສະລິບ...</>
+            ) : (
+              <><Upload className="size-5 text-primary" /> ແນບຮູບສະລິບ (ກວດສອບອັດຕະໂນມັດ)</>
+            )}
+          </button>
+
+          <button
+            onClick={onDone}
+            className="mt-4 w-full text-sm font-bold text-destructive"
+          >
+            ຍົກເລີກ ແລະ ເລີ່ມໃໝ່
           </button>
         </div>
-        <div className="text-2xl font-bold text-success">{formatKip(request.amount)} ₭</div>
       </div>
-
-      <div className="card-tile p-5">
-        <h3 className="font-bold text-sm mb-2">ແນບຮູບສະລິບການໂອນ</h3>
-        <p className="text-xs text-muted-foreground mb-3">
-          ຫຼັງຈາກໂອນເງິນສຳເລັດ ໃຫ້ແນບຮູບສະລິບ 1 ຮູບ ລະບົບຈະກວດອັດຕະໂນມັດ
-        </p>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }}
-        />
-        <Button
-          onClick={() => fileRef.current?.click()}
-          disabled={busy || submitted || secondsLeft <= 0}
-          className="w-full btn-neon"
-        >
-          {busy ? (
-            <><Loader2 className="size-4 animate-spin mr-2" /> ກຳລັງກວດສະລິບ...</>
-          ) : (
-            <><Upload className="size-4 mr-2" /> ແນບຮູບສະລິບ</>
-          )}
-        </Button>
-      </div>
-
-      <Button variant="ghost" onClick={onDone} className="w-full text-muted-foreground">
-        ຍົກເລີກ
-      </Button>
 
       {result && <ResultPopup ok={result.ok} message={result.message} onClose={onDone} />}
-
     </div>
   );
 }
@@ -519,13 +539,13 @@ function QrStep({
 function ResultPopup({ ok, message, onClose }: { ok: boolean; message?: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/35 backdrop-blur-sm px-4">
-      <div className="w-full max-w-xs card-tile p-6 text-center space-y-3">
+      <div className="w-full max-w-xs card-tile p-6 text-center space-y-3 animate-scale-in">
         {ok ? (
-          <CheckCircle2 className="size-16 text-success mx-auto" />
+          <CheckCircle2 className="size-24 text-success mx-auto animate-result-pop" />
         ) : (
-          <XCircle className="size-16 text-destructive mx-auto" />
+          <XCircle className="size-24 text-destructive mx-auto animate-result-shake" />
         )}
-        <div className="text-xl font-extrabold">{ok ? "ສຳເລັດ" : "ບໍ່ສຳເລັດ"}</div>
+        <div className="text-2xl font-extrabold">{ok ? "ສຳເລັດ" : "ບໍ່ສຳເລັດ"}</div>
         {message && (
           <div
             className={cn(
